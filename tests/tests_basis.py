@@ -2,6 +2,7 @@ import sys
 import os
 
 sys.path.insert(0, '../..')
+sys.path.insert(0, '../src')
 
 tests_path = os.path.dirname(os.path.realpath(__file__))
 VQA_Path = os.path.abspath(os.path.join(tests_path, os.pardir))
