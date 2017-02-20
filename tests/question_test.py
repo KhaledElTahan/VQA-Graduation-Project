@@ -1,5 +1,5 @@
 import tests_basis
-from VQA.src.sentence_preprocess import preprocess
+from sentence_preprocess import preprocess
 
 def test_fn(sentence):
     return preprocess(sentence)

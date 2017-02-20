@@ -1,6 +1,6 @@
 
 import tests_basis
-from VQA.src.f_extractor import get_features
+from f_extractor import get_features
 import skimage.io
 from skimage import transform
 import numpy as np

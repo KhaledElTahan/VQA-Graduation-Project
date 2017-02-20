@@ -77,11 +77,3 @@ def main_tester(test_name, starting_count, tests_results):
     print()
 
     return len(tests_results), success, error, fail
-
-
-
-
-
-
-
-

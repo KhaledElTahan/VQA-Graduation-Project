@@ -11,8 +11,13 @@ def _expand_abbreviations(words):
 def _is_word(str):
     return any(char.isdigit() or char.isalpha() for char in str)
 
+def _remove_last_dot(str):
+    if str[-1] == '.':
+        return str[:-1]
+    return str
+
 def _remove_punc(words):
-    return [w for w in words if _is_word(w)]
+    return [_remove_last_dot(w) for w in words if _is_word(w)]
 
 def _get_wordnet_pos(word_tag):
     if word_tag.startswith('J'):
@@ -26,7 +31,7 @@ def _get_wordnet_pos(word_tag):
 
 def preprocess(sentence):
     sentence = sub('[.]{2,}', '.', sentence)
-    words = word_tokenize(sentence)
+    words = word_tokenize(sentence.lower())
     words = _remove_punc(words)
     words = _expand_abbreviations(words)
 
