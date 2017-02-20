@@ -1,26 +1,41 @@
 import tests_basis
 from VQA.src.sentence_preprocess import preprocess
 
-print(preprocess("hello word !"))
-print("********************************")
+def test_fn(sentence):
+    return preprocess(sentence)
 
-print(preprocess("haven't you seen?"))
-print("********************************")
+def main(starting_counter):
+    test_args, test_exps, test_results = [], [], []
 
-print(preprocess("ok... I saw him !!"))
-print("********************************")
+    test_args.append("hello world !")
+    test_exps.append(["hello", "world"])
 
-print(preprocess("it's 5.30 o'clock, come fast"))
-print("********************************")
+    test_args.append("haven't you seen?")
+    test_exps.append(["have", "not", "you", "see"])
 
-print(preprocess("he ran from ahmed."))
-print("********************************")
+    test_args.append("ok... I saw him !!")
+    test_exps.append(["ok", "i", "saw", "him"])
 
-print(preprocess("does it contains sugar?"))
-print("********************************")
+    test_args.append("it's 5.30 o'clock, come fast")
+    test_exps.append(["it", "is", "5.30", "o'clock", "come", "fast"])
 
-print(preprocess("play football.."))  # problem here
-print("********************************")
+    test_args.append("he ran from ahmed.")
+    test_exps.append(["he", "run", "from", "ahmed"])
 
-print(preprocess("ok"))
-print("********************************")
+    test_args.append("does it contains sugar?")
+    test_exps.append(["do", "it", "contain", "sugar"])
+
+    test_args.append("play football..")
+    test_exps.append(["play", "football"])
+
+    test_args.append("ok")
+    test_exps.append(["ok"])
+
+    for i in range(len(test_args)):
+        test_results.append(tests_basis.test(test_fn, test_args[i], test_exps[i]))
+
+    return tests_basis.main_tester("Testing The sentence preprocessing", starting_counter, test_results)
+
+if __name__ == "__main__":
+    main(1)
+    
