@@ -28,8 +28,11 @@ def main(starting_counter):
     test_args.append("play football..")
     test_exps.append(["play", "football"])
 
-    test_args.append("ok")
+    test_args.append("OK")
     test_exps.append(["ok"])
+
+    test_args.append("you're a good-looking person")
+    test_exps.append(["you", "be", "a", "good", "look", "person"])
 
     for i in range(len(test_args)):
         test_results.append(tests_basis.test(test_fn, test_args[i], test_exps[i]))

@@ -13,6 +13,8 @@ TEST_SUCCESS = 0
 TEST_ERROR = 1
 TEST_FAIL = 2
 
+_testes_files_list = []
+
 def get_test_image_path(file_name):
     return os.path.join(tests_data_path, file_name)
 
@@ -35,8 +37,10 @@ def test(test_fn, args=None, expected_output=None):
     except Exception as e:
         return TEST_FAIL, str(e), None
 
+_GLOBAL_LINE_LEN = 100
+
 def main_tester(test_name, starting_count, tests_results):
-    line_len = 100
+    line_len = _GLOBAL_LINE_LEN
 
     print('*' * line_len)
     header_1 = '* Testing: {}'.format(test_name)
@@ -77,3 +81,49 @@ def main_tester(test_name, starting_count, tests_results):
     print()
 
     return len(tests_results), success, error, fail
+
+def add_test_file(test_file):
+    _testes_files_list.append(test_file)
+
+
+def _print_row(a, b, c, d, e, len_a, len_b=15, len_c=15, len_d=15, len_e=15, first=False):
+    if first:
+        print('+', '-' * (len_a - 2), '+', '-' * (len_b - 1), '+', '-' * (len_c - 1), '+', '-' * (len_d - 1), '+', '-' * (len_e - 1), '+', sep='')
+
+    print('|', a, ' ' * (len_a - len(a) - 2), '|', sep='', end='')
+    print(b, ' ' * (len_b - len(b) - 1), '|', sep='', end='')
+    print(c, ' ' * (len_c - len(c) - 1), '|', sep='', end='')
+    print(d, ' ' * (len_d - len(d) - 1), '|', sep='', end='')
+    print(e, ' ' * (len_e - len(e) - 1), '|', sep='')
+
+    print('+', '-' * (len_a - 2), '+', '-' * (len_b - 1), '+', '-' * (len_c - 1), '+', '-' * (len_d - 1), '+', '-' * (len_e - 1), '+', sep='')
+
+
+def run_tests():
+    line_len = _GLOBAL_LINE_LEN
+    n_sum, s_sum, e_sum, f_sum = 0, 0, 0, 0
+    nn, ss, ee, ff = [], [], [], []
+
+    for test_file in _testes_files_list:
+        n, s, e, f = test_file.main(n_sum + 1)
+
+        nn.append('{}'.format(n))
+        ss.append('{}'.format(s))
+        ee.append('{}'.format(e))
+        ff.append('{}'.format(f))
+
+        n_sum += n
+        s_sum += s
+        e_sum += e
+        f_sum += f
+
+    _print_row("Test File", "#Tests", "Pass", "Error", "Fail", line_len - 60, first=True)
+
+    i = 0
+    for test_file in _testes_files_list:
+        _print_row(test_file.__name__, nn[i], ss[i], ee[i], ff[i], line_len - 60)
+        i = i + 1
+
+    if n_sum == s_sum:
+        print("All Tests passed successfully !")
+
