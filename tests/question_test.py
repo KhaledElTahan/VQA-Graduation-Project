@@ -34,6 +34,12 @@ def main(starting_counter):
     test_args.append("you're a good looking person.")
     test_exps.append(["you", "be", "a", "good", "look", "person"])
 
+    test_args.append("he'd dragged me away")
+    test_exps.append(["he", "have", "drag", "me", "away"])
+
+    test_args.append("he'd drag me away")
+    test_exps.append(["he", "would", "drag", "me", "away"])
+
     for i in range(len(test_args)):
         test_results.append(tests_basis.test(test_fn, test_args[i], test_exps[i]))
 

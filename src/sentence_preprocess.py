@@ -6,9 +6,6 @@ from re import sub
 from abbreviations import expand
 from word_preprocess import word2vec
 
-def _expand_abbreviations(words):
-    return words
-
 def _is_word(str):
     return any(char.isdigit() or char.isalpha() for char in str)
 
@@ -30,11 +27,23 @@ def _get_wordnet_pos(word_tag):
     else:
         return wordnet.NOUN
 
+def tokenize(sentence):
+    words = word_tokenize(sentence.lower())
+    tokenized_words = []
+
+    for i in range(len(words)):
+        if i and words[i][0] == "'":
+            del tokenized_words[-1]
+            tokenized_words.append(words[i - 1] + words[i])
+        else:
+            tokenized_words.append(words[i])
+
+    return tokenized_words
+
 def preprocess(sentence):
     sentence = sub('[.]{2,}', '.', sentence)
-    words = word_tokenize(sentence.lower())
+    words = tokenize(sentence)
     words = _remove_punc(words)
-    words = _expand_abbreviations(words)
 
     tagged_words = pos_tag(expand(pos_tag(words)))
     del words
