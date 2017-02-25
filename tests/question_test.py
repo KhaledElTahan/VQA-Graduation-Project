@@ -17,7 +17,7 @@ def main(starting_counter):
     test_exps.append(["ok", "i", "saw", "him"])
 
     test_args.append("it's 5.30 o'clock, come fast")
-    test_exps.append(["it", "is", "5.30", "o'clock", "come", "fast"])
+    test_exps.append(["it", "be", "5.30", "o'clock", "come", "fast"])
 
     test_args.append("he ran from ahmed.")
     test_exps.append(["he", "run", "from", "ahmed"])
@@ -31,7 +31,7 @@ def main(starting_counter):
     test_args.append("OK")
     test_exps.append(["ok"])
 
-    test_args.append("you're a good-looking person")
+    test_args.append("you're a good looking person.")
     test_exps.append(["you", "be", "a", "good", "look", "person"])
 
     for i in range(len(test_args)):

@@ -3,7 +3,8 @@ from nltk.tokenize import word_tokenize
 from nltk.corpus import wordnet
 from nltk.stem.wordnet import WordNetLemmatizer
 from re import sub
-from abbreviations import contractions
+from abbreviations import expand
+from word_preprocess import word2vec
 
 def _expand_abbreviations(words):
     return words
@@ -35,11 +36,12 @@ def preprocess(sentence):
     words = _remove_punc(words)
     words = _expand_abbreviations(words)
 
-    tagged_words = pos_tag(words)
+    tagged_words = pos_tag(expand(pos_tag(words)))
     del words
 
     wordnet_lemmatizer = WordNetLemmatizer()
     return [wordnet_lemmatizer.lemmatize(w, pos=_get_wordnet_pos(t)) for w, t in tagged_words]
 
-
+def sentence2vecs(sentence):
+    return [word2vec(w) for w in preprocess(sentence)]
 
