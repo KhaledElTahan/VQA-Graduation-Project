@@ -3,11 +3,11 @@ from tensorflow.contrib import layers
 
 _MAIN_MODEL_GRAPH = None
 
-def question_lstm_model(questions_ph, cell_size, layers_num, batch_size):
+def question_lstm_model(questions_ph, cell_size, layers_num):
     
-    cell = tf.nn.rnn_cell.LSTMCell(cell_size, state_is_tuple=False)
+    cell = tf.nn.rnn_cell.LSTMCell(cell_size, state_is_tuple=True)
     mcell = tf.nn.rnn_cell.MultiRNNCell([cell] * layers_num)
-    init_state = mcell.zero_state(batch_size, tf.float32) 
+    init_state = mcell.zero_state(tf.shape(questions_ph)[0], tf.float32) 
     _, final_state = tf.nn.dynamic_rnn(mcell, questions_ph, initial_state=init_state)
     
     combined_states = tf.stack(final_state, 1)
@@ -15,9 +15,9 @@ def question_lstm_model(questions_ph, cell_size, layers_num, batch_size):
 
     return layers.relu(combined_states, 1024)  # The questions features
 
-def abstract_model(questions_ph, img_features_ph, batch_size, cell_size=512, layers_num=2):
+def abstract_model(questions_ph, img_features_ph, cell_size=512, layers_num=2):
 
-    question_features = question_lstm_model(questions_ph, cell_size, layers_num, batch_size)
+    question_features = question_lstm_model(questions_ph, cell_size, layers_num)
     img_features = layers.relu(img_features_ph, 1024)
 
     fused_features_first = tf.multiply(img_features, question_features)
@@ -30,7 +30,7 @@ def _accuracy(predictions, labels):
     # 1 - abs(predic - target)/sum(target)
     
     abs_diff = tf.abs(predictions - labels)
-    return (1 - tf.mean(tf.sum(abs_diff, axis=1) / tf.sum(labels, axis=1))) * 100.0
+    return tf.identity((1 - tf.reduce_mean(tf.reduce_sum(abs_diff, axis=1) / tf.reduce_sum(labels, axis=1))) * 100.0, name='accuarcy')
 
 def validation_acc_loss(sess,
                         batch_size,
@@ -74,7 +74,7 @@ def train_model(starting_pos,
                 get_images_batch_f,
                 get_questions_batch_f,
                 get_labels_batch_f,
-                batch_size=None,
+                batch_size,
                 from_scratch=False,
                 validate=True,
                 trace=False):
@@ -82,7 +82,7 @@ def train_model(starting_pos,
     sess = tf.Session()
     
     if from_scratch:
-        questions_place_holder, images_place_holder, labels_place_holder, logits, loss, accuarcy = _train_from_scratch(sess, batch_size) 
+        questions_place_holder, images_place_holder, labels_place_holder, logits, loss, accuarcy = _train_from_scratch(sess) 
     else:
         questions_place_holder, images_place_holder, labels_place_holder, logits, loss, accuarcy = _fine_tune_model(sess)
     
@@ -95,9 +95,6 @@ def train_model(starting_pos,
     
     saver = tf.train.Saver(max_to_keep=5)
     
-    # to remove later ## JUST FOR TESTING
-    batch_size = 32
-    
     for i in range(number_of_iteration):
         images_batch = get_images_batch_f(starting_pos + i * batch_size, batch_size, training_data=True)
         questions_batch = get_questions_batch_f(starting_pos + i * batch_size, batch_size, training_data=True)
@@ -108,7 +105,7 @@ def train_model(starting_pos,
         _, training_loss, training_acc = sess.run([train_step, loss, accuarcy], feed_dict=feed_dict)
         
         if validate and i and i % validation_point_iteration == 0:
-            validation_loss, validation_acc = validation_acc_loss(sess, batch_size,
+            validation_loss, validation_acc = validation_acc_loss(sess,
                                                                   images_place_holder,
                                                                   questions_place_holder,
                                                                   labels_place_holder,
@@ -141,15 +138,15 @@ def _get_last_main_model_path():
     
     return meta_graph_path, data_path
 
-def _train_from_scratch(sess, batch_size):
-    questions_place_holder = tf.placeholder(tf.float32, [batch_size, None, 300], name='questions_place_holder') 
-    images_place_holder = tf.placeholder(tf.float32, [batch_size, 224, 224, 3], name='imagess_place_holder')
-    labels_place_holder = tf.placeholder(tf.float32, [batch_size, 1000], name='labels_place_holder')
+def _train_from_scratch(sess):
+    questions_place_holder = tf.placeholder(tf.float32, [None, None, 300], name='questions_place_holder') 
+    images_place_holder = tf.placeholder(tf.float32, [None, 2048], name='imagess_place_holder')
+    labels_place_holder = tf.placeholder(tf.float32, [None, 1000], name='labels_place_holder')
     
-    logits = tf.identify(abstract_model(questions_place_holder, images_place_holder, batch_size), name="logits")
+    logits = tf.identity(abstract_model(questions_place_holder, images_place_holder), name="logits")
     
     loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits, labels_place_holder), name='loss')
-    accuarcy = _accuracy(tf.nn.softmax(logits), labels_place_holder, name='accuarcy') 
+    accuarcy = _accuracy(tf.nn.softmax(logits), labels_place_holder) 
     
     return questions_place_holder, images_place_holder, labels_place_holder, logits, loss, accuarcy
 
