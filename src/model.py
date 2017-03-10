@@ -47,9 +47,9 @@ def validation_acc_loss(sess,
     
     itr = 0
     while True:
-        images_batch, end_of_data = get_images_batch_f(itr * batch_size, batch_size)
-        questions_batch, end_of_data = get_questions_batch_f(itr * batch_size, batch_size)
-        labels_batch, end_of_data = get_labels_batch_f(itr * batch_size, batch_size)
+        images_batch, end_of_data = get_images_batch_f(itr * batch_size, batch_size, validation_data=True)
+        questions_batch, end_of_data = get_questions_batch_f(itr * batch_size, batch_size, validation_data=True)
+        labels_batch, end_of_data = get_labels_batch_f(itr * batch_size, batch_size, validation_data=True)
         
         if(end_of_data):
             break
