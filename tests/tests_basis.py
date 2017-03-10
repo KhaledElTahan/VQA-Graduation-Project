@@ -1,8 +1,13 @@
 import sys
 import os
+import traceback
+import warnings
+
+warnings.filterwarnings("ignore")
 
 sys.path.insert(0, '../..')
 sys.path.insert(0, '../src')
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 tests_path = os.path.dirname(os.path.realpath(__file__))
 VQA_Path = os.path.abspath(os.path.join(tests_path, os.pardir))
@@ -13,8 +18,21 @@ TEST_SUCCESS = 0
 TEST_ERROR = 1
 TEST_FAIL = 2
 
+_FULL_TRACE = False
+
 _testes_files_list = []
 
+def set_options(cmd_variables):
+    global _FULL_TRACE
+
+    for arg in cmd_variables:
+        if arg == "-f":
+            _FULL_TRACE = True
+        elif arg == "-tf":
+            os.environ['TF_CPP_MIN_LOG_LEVEL'] = '0'
+        elif arg == "-w":
+            warnings.filterwarnings("default")
+            
 def get_test_image_path(file_name):
     return os.path.join(tests_data_path, file_name)
 
@@ -35,7 +53,14 @@ def test(test_fn, args=None, expected_output=None):
             return TEST_ERROR, actual_output, expected_output
 
     except Exception as e:
-        return TEST_FAIL, str(e), None
+        err = None
+
+        if _FULL_TRACE:
+            err = traceback.format_exc()
+        else:
+            err = str(e)
+
+        return TEST_FAIL, err, None
 
 _GLOBAL_LINE_LEN = 100
 

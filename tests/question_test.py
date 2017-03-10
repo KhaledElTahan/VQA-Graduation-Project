@@ -1,4 +1,5 @@
 import tests_basis
+import sys
 from sentence_preprocess import preprocess
 
 def test_fn(sentence):
@@ -46,5 +47,6 @@ def main(starting_counter):
     return tests_basis.main_tester("Testing The sentence preprocessing", starting_counter, test_results)
 
 if __name__ == "__main__":
+    tests_basis.set_options(sys.argv)
     main(1)
     
