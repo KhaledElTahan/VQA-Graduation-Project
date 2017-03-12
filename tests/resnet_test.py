@@ -15,9 +15,8 @@ def test_fn():
     return get_features(batch).shape
 
 def main(starting_counter):
-    test_1_res = tests_basis.test(test_fn, expected_output=(2, 2048))
-    tests_results = [test_1_res]
-    return tests_basis.main_tester("Testing the feature extraction from the ResNet-152L", starting_counter, tests_results)
+    tests_basis.create_tests([test_fn], [None], [(2, 2048)])
+    return tests_basis.main_tester("Testing the feature extraction from the ResNet-152L", starting_counter)
 
 if __name__ == "__main__":
     tests_basis.set_options(sys.argv)

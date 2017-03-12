@@ -6,7 +6,7 @@ def test_fn(sentence):
     return preprocess(sentence)
 
 def main(starting_counter):
-    test_args, test_exps, test_results = [], [], []
+    test_args, test_exps = [], []
 
     test_args.append("hello world !")
     test_exps.append(["hello", "world"])
@@ -41,10 +41,8 @@ def main(starting_counter):
     test_args.append("he'd drag me away")
     test_exps.append(["he", "would", "drag", "me", "away"])
 
-    for i in range(len(test_args)):
-        test_results.append(tests_basis.test(test_fn, test_args[i], test_exps[i]))
-
-    return tests_basis.main_tester("Testing The sentence preprocessing", starting_counter, test_results)
+    tests_basis.create_tests([test_fn] * len(test_args), test_args, test_exps)
+    return tests_basis.main_tester("Testing The sentence preprocessing", starting_counter)
 
 if __name__ == "__main__":
     tests_basis.set_options(sys.argv)

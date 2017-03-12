@@ -9,7 +9,7 @@ def test_fn(args):
 
 
 def main(starting_counter):
-    test_args, test_exps, test_results = [], [], []
+    test_args, test_exps = [], []
 
     test_args.append([29994, 6, False])
     test_exps.append((6, 3))
@@ -20,10 +20,9 @@ def main(starting_counter):
     test_args.append([20000, 20, False])
     test_exps.append((20, 3))
 
-    for i in range(len(test_args)):
-        test_results.append(tests_basis.test(test_fn, test_args[i], test_exps[i]))
+    tests_basis.create_tests([test_fn] * len(test_args), test_args, test_exps)
 
-    return tests_basis.main_tester("Testing questions batch loading", starting_counter, test_results)
+    return tests_basis.main_tester("Testing questions batch loading", starting_counter)
 
 if __name__ == "__main__":
     tests_basis.set_options(sys.argv)
