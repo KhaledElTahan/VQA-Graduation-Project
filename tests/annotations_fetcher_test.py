@@ -12,13 +12,13 @@ def main(starting_counter):
     test_args, test_exps = [], []
 
     test_args.append([29994, 6, False])
-    test_exps.append((6, 3, 10))
+    test_exps.append((6, 3, 1000))
 
     test_args.append([29900, 32, False])
-    test_exps.append((32, 3, 10))
+    test_exps.append((32, 3, 1000))
 
     test_args.append([20000, 20, False])
-    test_exps.append((20, 3, 10))
+    test_exps.append((20, 3, 1000))
 
     tests_basis.create_tests([test_fn] * len(test_args), test_args, test_exps)
     return tests_basis.main_tester("Testing annotations batch loading", starting_counter)
