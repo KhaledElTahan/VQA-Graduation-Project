@@ -2,7 +2,6 @@ import sys
 import os
 import traceback
 import warnings
-import timeit
 import time
 
 warnings.filterwarnings("ignore")

@@ -9,7 +9,7 @@ def test_fn(tensor_type, unique_num):
         init = tf.global_variables_initializer()
         sess.run(init)
 
-        questions_place_holder, images_place_holder, labels_place_holder, logits, loss, accuarcy = _train_from_scratch(sess)
+        questions_place_holder, images_place_holder, labels_place_holder, logits, loss, accuarcy, bn_phase = _train_from_scratch(sess)
         sess.close()
 
         if tensor_type == "questions_place_holder":
@@ -22,6 +22,8 @@ def test_fn(tensor_type, unique_num):
             return logits.get_shape().as_list()
         elif tensor_type == "loss":
             return loss.get_shape().as_list()
+        elif tensor_type == "bn_phase":
+            return bn_phase.get_shape().as_list()
         return accuarcy.get_shape().as_list()
 
 
@@ -39,6 +41,8 @@ def main(starting_counter):
     test_args.append(("loss", 5))
     test_exps.append([])
     test_args.append(("accuracy", 6))
+    test_exps.append([])
+    test_args.append(("bn_phase", 7))
     test_exps.append([])
 
     tests_basis.create_tests([test_fn] * len(test_args), test_args, test_exps)

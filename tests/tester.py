@@ -6,6 +6,7 @@ import annotations_fetcher_test
 import img_fetcher_test
 import question_fetcher_test
 import model_dimensionality_test
+import top5_accuracy_test
 
 def main(cmd_variables):
     tests_basis.add_test_file(resnet_test)
@@ -14,7 +15,8 @@ def main(cmd_variables):
     tests_basis.add_test_file(img_fetcher_test)
     tests_basis.add_test_file(question_fetcher_test)
     tests_basis.add_test_file(model_dimensionality_test)
-
+    tests_basis.add_test_file(top5_accuracy_test)
+    
     tests_basis.set_options(cmd_variables)
     tests_basis.run_tests()
 
