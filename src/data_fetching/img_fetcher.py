@@ -1,14 +1,15 @@
 import skimage.io
 from skimage import transform
+from data_fetching.multithreading import FuncThread
+import math
 import numpy as np
 import glob
 
-
 # Directories assume that Process Working Directory is the src folder
-TRAIN_SET_DIR = "../data/scene_img_abstract_v002_val2015/"		# Change it to the large data set later
+TRAIN_SET_DIR = "../data/scene_img_abstract_v002_val2015/"  # Change it to the large data set later
 VAL_SET_DIR = "../data/scene_img_abstract_v002_val2015/"
-IMG_SHAPE = (224, 224)		# Used image shape for resizing
-
+IMG_SHAPE = (224, 224)  # Used image shape for resizing
+IMG_PER_THREAD = 8  # Number of images loaded per thread determined by trial and error according to the batch size
 
 # Returns resized numpy array of the image with this id
 def _get_img_by_id(img_dir, img_id):
@@ -25,7 +26,6 @@ def _get_img_by_id(img_dir, img_id):
 
 # Returns a numpy array containing images and a boolean which is true if we reached the end of the data set
 def _get_img_batch(img_dir, start_id, batch_size):
-
     batch = []
 
     for i in range(start_id, start_id + batch_size):
@@ -37,10 +37,22 @@ def _get_img_batch(img_dir, start_id, batch_size):
     return batch_np
 
 
-# Overloaded for data set type
+# Overloaded for data set type and multi-threading
 def get_img_batch(start_id, batch_size, training_data):
 
-    if training_data:
-        return _get_img_batch(TRAIN_SET_DIR,start_id,batch_size)
-    else:
-        return _get_img_batch(VAL_SET_DIR,start_id,batch_size)
+    num_threads = math.ceil(batch_size / IMG_PER_THREAD)
+    img_threads = []
+
+    for i in range(0, num_threads):
+        img_threads.append(FuncThread(_get_img_batch, TRAIN_SET_DIR if training_data else VAL_SET_DIR,
+                                      start_id + i * IMG_PER_THREAD,
+                                      min(IMG_PER_THREAD, batch_size - i * IMG_PER_THREAD)))
+
+    batch = img_threads[0].get_ret_val()
+
+    for i in range(1, num_threads):
+        batch = np.concatenate((batch, img_threads[i].get_ret_val()), axis=0)
+
+    return batch
+
+
