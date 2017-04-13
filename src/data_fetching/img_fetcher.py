@@ -21,6 +21,13 @@ def _get_img_by_id(img_dir, img_id):
 
     img = skimage.io.imread(files[0])
     img = transform.resize(img, IMG_SHAPE)
+
+    # Modifications to the image if it's a grayscale or contains an alpha channel
+    if len(img.shape) == 2:
+        img = np.stack([img, img, img], axis=2)
+    elif img.shape[2] == 4:
+        img = img[:, :, :3]
+
     return img
 
 
@@ -54,5 +61,3 @@ def get_img_batch(start_id, batch_size, training_data):
         batch = np.concatenate((batch, img_threads[i].get_ret_val()), axis=0)
 
     return batch
-
-

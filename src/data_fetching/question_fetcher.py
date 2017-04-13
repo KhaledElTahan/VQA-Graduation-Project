@@ -46,8 +46,9 @@ def get_question_batch(start_id, batch_size, training_data):
     batch = []
 
     for img_id in range(start_id, start_id + batch_size):
-        elem = [all_questions[img_id * 10], all_questions[img_id * 10 + 1], all_questions[img_id * 10 + 2]]
-        batch.append(elem)
+        batch.append(all_questions[img_id * 10])
+        batch.append(all_questions[img_id * 10 + 1])
+        batch.append(all_questions[img_id * 10 + 2])
 
     batch_np = np.stack(batch, axis=0)
 

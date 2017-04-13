@@ -52,13 +52,9 @@ def get_annotation_batch(start_id, batch_size, training_data):
     batch = []
 
     for img_id in range(start_id, start_id + batch_size):
-        q_annots = []
-
         for q_id in range(0,3):
             question_id = img_id * 10 + q_id
-            q_annots.append(expand_answer(all_annotation[question_id]))
-
-        batch.append(q_annots)
+            batch.append(expand_answer(all_annotation[question_id]))
 
     batch_np = np.stack(batch, axis=0)
 

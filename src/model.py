@@ -45,11 +45,9 @@ def validation_acc_loss(sess,
                         batch_size,
                         images_place_holder,
                         questions_place_holder,
-                        labels_place_holder,
+                        labels_place_aholder,
                         phase_ph,
-                        get_images_batch_f,
-                        get_questions_batch_f,
-                        get_labels_batch_f,
+                        get_data_batch_f,
                         accuracy,
                         loss):
     temp_acc = 0.0
@@ -57,10 +55,7 @@ def validation_acc_loss(sess,
     
     itr = 0
     while True:
-        images_batch, end_of_data = get_images_batch_f(itr * batch_size, batch_size, validation_data=True)
-        questions_batch, end_of_data = get_questions_batch_f(itr * batch_size, batch_size, validation_data=True)
-        labels_batch, end_of_data = get_labels_batch_f(itr * batch_size, batch_size, validation_data=True)
-        
+        images_batch, questions_batch, labels_batch, end_of_data = get_data_batch_f(itr * batch_size, batch_size, training_data=False)
         if(end_of_data):
             break
         
@@ -81,9 +76,7 @@ def train_model(starting_pos,
                 check_point_iteration,
                 validation_point_iteration,
                 learning_rate, 
-                get_images_batch_f,
-                get_questions_batch_f,
-                get_labels_batch_f,
+                get_data_batch_f,
                 batch_size,
                 from_scratch=False,
                 validate=True,
@@ -108,10 +101,7 @@ def train_model(starting_pos,
     saver = tf.train.Saver(max_to_keep=5)
     
     for i in range(number_of_iteration):
-        images_batch = get_images_batch_f(starting_pos + i * batch_size, batch_size, training_data=True)
-        questions_batch = get_questions_batch_f(starting_pos + i * batch_size, batch_size, training_data=True)
-        labels_batch = get_labels_batch_f(starting_pos + i * batch_size, batch_size, training_data=True)
-        
+        images_batch, questions_batch, labels_batch,_  = get_data_batch_f(starting_pos + i * batch_size, batch_size, training_data=True)
         feed_dict = {questions_place_holder: questions_batch, images_place_holder: images_batch, labels_place_holder: labels_batch, phase_ph: 1}
         
         _, training_loss, training_acc = sess.run([train_step, loss, accuarcy], feed_dict=feed_dict)
@@ -122,8 +112,7 @@ def train_model(starting_pos,
                                                                   questions_place_holder,
                                                                   labels_place_holder,
                                                                   phase_ph,
-                                                                  get_images_batch_f, get_questions_batch_f,
-                                                                  get_labels_batch_f, accuarcy, loss)
+                                                                  get_data_batch_f, accuarcy, loss)
         
         if i and i % check_point_iteration == 0:
             saver.save(sess, "main_model_", global_step=starting_pos + (i + 1) * batch_size)
@@ -191,10 +180,4 @@ def evaluate(image_features, question_features):
     results = tf.nn.softmax(logits)
 
     evaluation_logits = sess.run([results], feed_dict=feed_dict)
-
-
-
-
-
-
 
