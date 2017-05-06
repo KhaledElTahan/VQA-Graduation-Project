@@ -52,5 +52,10 @@ def preprocess(sentence):
     return [wordnet_lemmatizer.lemmatize(w, pos=_get_wordnet_pos(t)) for w, t in tagged_words]
 
 def sentence2vecs(sentence):
+    #returns array of  #words in question * 300
     return [word2vec(w) for w in preprocess(sentence)]
 
+#added
+def question_batch_to_vecs(questions):
+    #returns array of #question * #words in each question * 300
+    return [sentence2vecs(q) for q in questions]

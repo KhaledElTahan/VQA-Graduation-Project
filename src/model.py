@@ -8,6 +8,7 @@ def dense_batch_relu(input_ph, phase, output_size, name=None):
     h2 = tf.contrib.layers.batch_norm(h1, is_training=phase)
     return tf.nn.relu(h2, name)
 
+#question_ph is batchSize*#wordsInEachQuestion*300
 def question_lstm_model(questions_ph, phase_ph, cell_size, layers_num):
     
     cell = tf.nn.rnn_cell.LSTMCell(cell_size, state_is_tuple=True)

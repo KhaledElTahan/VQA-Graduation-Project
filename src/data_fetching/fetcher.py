@@ -4,6 +4,7 @@ from data_fetching.question_fetcher import get_question_batch
 from data_fetching.annotation_fetcher import get_annotation_batch
 from data_fetching.multithreading import FuncThread
 from f_extractor import get_features
+from sentence_preprocess import question_batch_to_vecs
 
 TRAIN_START_ID = 20000  # Starting image_id of the training data set
 TRAIN_END_ID = 29999    # Ending image_id of the training data set
@@ -48,7 +49,9 @@ def get_data_batch(itr, batch_size, training_data):
         annotations = annotation_thread.get_ret_val()
 
     images = get_features(images)
-
     images = np.repeat(images, 3, axis=0)
 
-    return images, questions, annotations, actual_batch_size < batch_size
+    #added
+    questions_vecs = question_batch_to_vecs(questions)
+
+    return images, questions_vecs, annotations, actual_batch_size < batch_size
