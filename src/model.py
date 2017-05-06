@@ -90,7 +90,7 @@ def train_model(starting_pos,
         init = tf.global_variables_initializer()
         sess.run(init)
     else:
-        questions_place_holder, images_place_holder, labels_place_holder, logits, loss, accuarcy, phase_ph = _get_saved_graph_tensors(sess)
+        questions_place_holder, images_place_holder, labels_place_holder, logits, loss, accuarcy, phase_ph, starting_pos = _get_saved_graph_tensors(sess)
     
     optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
 
@@ -116,7 +116,7 @@ def train_model(starting_pos,
                                                                   get_data_batch_f, accuarcy, loss)
         
         if i and i % check_point_iteration == 0:
-            saver.save(sess, "main_model_", global_step=starting_pos + (i + 1) * batch_size)
+            saver.save(sess, os.path.join(os.getcwd(), "main_model"), global_step=starting_pos + (i + 1) * batch_size)
         
         # if trace:
             # _print_statistics()
@@ -126,7 +126,7 @@ def train_model(starting_pos,
     sess.close()
 
 def _load_model(sess):
-    meta_graph_path, data_path = _get_last_main_model_path()
+    meta_graph_path, data_path , last_index = _get_last_main_model_path()
     new_saver = tf.train.import_meta_graph(meta_graph_path)
 
     # requires a session in which the graph was launched.
@@ -134,12 +134,30 @@ def _load_model(sess):
     
     global _MAIN_MODEL_GRAPH
     _MAIN_MODEL_GRAPH = tf.get_default_graph()
+    return last_index
 
 def _get_last_main_model_path():
+    path = "model_data/"
+
+    checkpoint_file = open('checkpoint','r')
     meta_graph_path = None
     data_path = None
-    
-    return meta_graph_path, data_path
+    lst_indx = 0
+    for line in checkpoint_file: 
+        final_line = line
+    word = None
+  
+    if final_line != None:
+        strt = final_line.find("main_model",0)
+        if strt != -1:
+            word = final_line[strt:len(final_line)-2]
+            strt2 = word.find("-",0)
+            lst_indx = int(word[strt2+1:len(word)])
+            
+    if word != None :
+        meta_graph_path = word +".meta"
+        data_path = "./" + word
+    return meta_graph_path, data_path , lst_indx
 
 def _train_from_scratch(sess):
     questions_place_holder = tf.placeholder(tf.float32, [None, None, 300], name='questions_place_holder') 
@@ -156,8 +174,9 @@ def _train_from_scratch(sess):
 
 def _get_saved_graph_tensors(sess):
     
+    last_index = 0
     if _MAIN_MODEL_GRAPH is None:
-        _load_model(sess)
+        last_index = _load_model(sess)
     
     questions_place_holder = _MAIN_MODEL_GRAPH.get_tensor_by_name("questions_place_holder:0") 
     images_place_holder = _MAIN_MODEL_GRAPH.get_tensor_by_name("images_place_holder:0")
@@ -169,7 +188,7 @@ def _get_saved_graph_tensors(sess):
     loss = _MAIN_MODEL_GRAPH.get_tensor_by_name("loss:0")
     accuarcy = _MAIN_MODEL_GRAPH.get_tensor_by_name("accuarcy:0")
 
-    return questions_place_holder, images_place_holder, labels_place_holder, logits, loss, accuarcy, bn_phase
+    return questions_place_holder, images_place_holder, labels_place_holder, logits, loss, accuarcy, bn_phase, last_index
 
 def evaluate(image_features, question_features):
 
