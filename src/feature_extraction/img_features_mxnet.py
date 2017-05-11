@@ -21,7 +21,7 @@ def _create_model(batch_size):
     _IS_CREATED = True
 
 def _bind_model():
-    _RES_NET_MODEL.bind(for_training=False, data_shapes=[('data', (_BATCH_SIZE, 3, 224, 224))]) 
+    _RES_NET_MODEL.bind(for_training=False, data_shapes=[('data', (_BATCH_SIZE, 3, 224, 224))], force_rebind=True) 
     _RES_NET_MODEL.set_params(_ARG_PARAMS, _AUX_PARAMS)
 
 # STILL DOESN'T WORK

@@ -42,10 +42,10 @@ def main(starting_counter):
     test_fns.append(test_fn_2)
     test_exps.append((1, 2048))
 
-    test_fns.append(test_fn_2)
+    test_fns.append(test_fn_3)
     test_exps.append((4, 2048))
 
-    test_fns.append(test_fn_2)
+    test_fns.append(test_fn_4)
     test_exps.append((4, 2048))
 
     tests_basis.create_tests(test_fns, test_args, test_exps)
