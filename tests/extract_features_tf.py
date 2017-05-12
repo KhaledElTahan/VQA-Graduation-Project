@@ -1,6 +1,6 @@
 import tests_basis
 import sys
-from feature_extraction.img_features_tf import get_features
+from feature_extraction.img_features_tf import get_features, _close_session
 import skimage.io
 from skimage import transform
 import numpy as np
@@ -41,7 +41,11 @@ def main(starting_counter):
     test_exps.append((4, 2048))
 
     tests_basis.create_tests(test_fns, test_args, test_exps)
-    return tests_basis.main_tester("Testing the feature extraction from the resnet152-1k-tf", starting_counter)
+    ret = tests_basis.main_tester("Testing the feature extraction from the resnet152-1k-tf", starting_counter)
+
+    _close_session()
+
+    return ret
 
 
 if __name__ == "__main__":

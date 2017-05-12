@@ -1,20 +1,20 @@
 import tests_basis
 import imp
 import sys
+import question_test
+import model_dimensionality_test
 import extract_features_tf
 import extract_features_mxnet
 import extract_features_general
-import question_test
 import annotations_fetcher_test
 import img_fetcher_test
 import question_fetcher_test
-import model_dimensionality_test
 import top5_accuracy_test 
 
 def _set_tests_modules():
-    # tests_basis.add_test_file(extract_features_tf) need to treat each one as a separate process
-    # tests_basis.add_test_file(extract_features_mxnet)
-    # tests_basis.add_test_file(extract_features_general)
+    tests_basis.add_test_file(extract_features_tf)
+    tests_basis.add_test_file(extract_features_mxnet)
+    tests_basis.add_test_file(extract_features_general)
     tests_basis.add_test_file(question_test)
     tests_basis.add_test_file(annotations_fetcher_test)
     tests_basis.add_test_file(img_fetcher_test)

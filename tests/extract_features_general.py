@@ -30,10 +30,14 @@ def test_fn_4():
     img = get_image('resnet_test.jpg')
     return extract([img] * 4).shape
 
+def test_fn_5():
+    img = get_image('resnet_test.jpg')
+    return extract([img] * 5).shape
+
 def main(starting_counter):
     test_args, test_exps, test_fns = [], [], []
 
-    test_args = [None] * 4
+    test_args = [None] * 5
 
     test_fns.append(test_fn_1)
     test_exps.append((1, 2048))
@@ -46,6 +50,9 @@ def main(starting_counter):
 
     test_fns.append(test_fn_4)
     test_exps.append((4, 2048))
+
+    test_fns.append(test_fn_5)
+    test_exps.append((5, 2048))
 
     tests_basis.create_tests(test_fns, test_args, test_exps)
     return tests_basis.main_tester("Testing the general feature extraction", starting_counter)

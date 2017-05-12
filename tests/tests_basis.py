@@ -4,6 +4,7 @@ import traceback
 import warnings
 import time
 
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 warnings.filterwarnings("ignore")
 
 sys.path.insert(0, '../..')

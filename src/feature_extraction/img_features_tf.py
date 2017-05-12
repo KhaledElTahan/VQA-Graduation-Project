@@ -6,7 +6,9 @@ _RES_NET_SESS = None
 _RES_NET_GRAPH = None
 
 def _create_graph():
-    sess = tf.Session()
+    config = tf.ConfigProto()
+    config.gpu_options.allow_growth = True
+    sess = tf.Session(config=config)
 
     new_saver = tf.train.import_meta_graph(get_path("resnet152-1k-tf", "graph"))
 
@@ -31,6 +33,8 @@ def _close_session():
 
     if _IS_CREATED and _RES_NET_SESS:
         _RES_NET_SESS.close()
+        del _RES_NET_SESS
+        del _RES_NET_GRAPH
         _IS_CREATED = False
         _RES_NET_GRAPH = None
         _RES_NET_SESS = None
