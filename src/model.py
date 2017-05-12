@@ -72,15 +72,15 @@ def validation_acc_loss(sess,
     
     return temp_loss, temp_acc 
 
-def train_model(starting_pos,
+def train_model(starting_pos, #done
                 number_of_iteration,
-                check_point_iteration,
-                validation_point_iteration,
+                check_point_iteration, #done
+                validation_point_iteration, #done
                 learning_rate, 
                 get_data_batch_f,
-                batch_size,
-                from_scratch=False,
-                validate=True,
+                batch_size, #done
+                from_scratch=False,  #done
+                validate=True, #done 
                 trace=False):
                     
     sess = tf.Session()
@@ -182,3 +182,4 @@ def evaluate(image_features, question_features):
 
     evaluation_logits = sess.run([results], feed_dict=feed_dict)
 
+    return evaluation_logits
