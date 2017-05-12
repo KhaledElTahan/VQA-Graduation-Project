@@ -1,8 +1,7 @@
-from tests import tester, tests_basis
+from tests import tester
 
 def run_tests(system_args):
-    tests_basis.set_options(system_args)
-    tester.main(system_args)
+    tester.run_tests(system_args)
 
 def train_model(batch_size, data_path, validate_flag, validation_itr, checkpoint_itr, from_scratch, model_name, starting_training_point):
     pass

@@ -1,5 +1,7 @@
 import tensorflow as tf
 from tensorflow.contrib import layers
+from tensorflow.contrib import rnn
+import os 
 
 _MAIN_MODEL_GRAPH = None
 
@@ -8,11 +10,9 @@ def dense_batch_relu(input_ph, phase, output_size, name=None):
     h2 = tf.contrib.layers.batch_norm(h1, is_training=phase)
     return tf.nn.relu(h2, name)
 
-#question_ph is batchSize*#wordsInEachQuestion*300
+# question_ph is batchSize*#wordsInEachQuestion*300
 def question_lstm_model(questions_ph, phase_ph, cell_size, layers_num):
-    
-    cell = tf.nn.rnn_cell.LSTMCell(cell_size, state_is_tuple=True)
-    mcell = tf.nn.rnn_cell.MultiRNNCell([cell] * layers_num)
+    mcell = rnn.MultiRNNCell([rnn.LSTMCell(cell_size, state_is_tuple=True) for _ in range(layers_num)])
     init_state = mcell.zero_state(tf.shape(questions_ph)[0], tf.float32) 
     _, final_state = tf.nn.dynamic_rnn(mcell, questions_ph, initial_state=init_state)
     
@@ -37,7 +37,7 @@ def _accuracy(predictions, labels):  # Top 1000 accuracy
 
     x = tf.to_int32(tf.shape(top_indices))[0]
     y = tf.to_int32(tf.shape(top_indices))[1]
-    flattened_ind = tf.range(0, tf.mul(x, y)) // y * tf.shape(labels)[1] + tf.reshape(top_indices, [-1])
+    flattened_ind = tf.range(0, tf.multiply(x, y)) // y * tf.shape(labels)[1] + tf.reshape(top_indices, [-1])
 
     acc = tf.reduce_sum(tf.gather(tf.reshape(labels, [-1]), flattened_ind)) / tf.to_float(tf.shape(labels))[0] * 100
     return tf.identity(acc, name='accuarcy')
@@ -102,7 +102,7 @@ def train_model(starting_pos,
     saver = tf.train.Saver(max_to_keep=5)
     
     for i in range(number_of_iteration):
-        images_batch, questions_batch, labels_batch,_  = get_data_batch_f(starting_pos + i * batch_size, batch_size, training_data=True)
+        images_batch, questions_batch, labels_batch, _ = get_data_batch_f(starting_pos + i * batch_size, batch_size, training_data=True)
         feed_dict = {questions_place_holder: questions_batch, images_place_holder: images_batch, labels_place_holder: labels_batch, phase_ph: 1}
         
         _, training_loss, training_acc = sess.run([train_step, loss, accuarcy], feed_dict=feed_dict)
@@ -126,7 +126,7 @@ def train_model(starting_pos,
     sess.close()
 
 def _load_model(sess):
-    meta_graph_path, data_path , last_index = _get_last_main_model_path()
+    meta_graph_path, data_path, last_index = _get_last_main_model_path()
     new_saver = tf.train.import_meta_graph(meta_graph_path)
 
     # requires a session in which the graph was launched.
@@ -139,7 +139,7 @@ def _load_model(sess):
 def _get_last_main_model_path():
     path = "model_data/"
 
-    checkpoint_file = open('checkpoint','r')
+    checkpoint_file = open('checkpoint', 'r')
     meta_graph_path = None
     data_path = None
     lst_indx = 0
@@ -147,17 +147,17 @@ def _get_last_main_model_path():
         final_line = line
     word = None
   
-    if final_line != None:
-        strt = final_line.find("main_model",0)
+    if final_line is not None:
+        strt = final_line.find("main_model", 0)
         if strt != -1:
-            word = final_line[strt:len(final_line)-2]
-            strt2 = word.find("-",0)
-            lst_indx = int(word[strt2+1:len(word)])
+            word = final_line[strt:len(final_line) - 2]
+            strt2 = word.find("-", 0)
+            lst_indx = int(word[strt2 + 1:len(word)])
             
-    if word != None :
-        meta_graph_path = word +".meta"
+    if word is not None:
+        meta_graph_path = word + ".meta"
         data_path = "./" + word
-    return meta_graph_path, data_path , lst_indx
+    return meta_graph_path, data_path, lst_indx
 
 def _train_from_scratch(sess):
     questions_place_holder = tf.placeholder(tf.float32, [None, None, 300], name='questions_place_holder') 
@@ -167,7 +167,7 @@ def _train_from_scratch(sess):
     bn_phase = tf.placeholder(tf.bool, [], name='bn_phase')
 
     logits = tf.identity(abstract_model(questions_place_holder, images_place_holder, bn_phase), name="logits")
-    loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits, labels_place_holder), name='loss')
+    loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=labels_place_holder), name='loss')
     accuarcy = _accuracy(tf.nn.softmax(logits), labels_place_holder) 
 
     return questions_place_holder, images_place_holder, labels_place_holder, logits, loss, accuarcy, bn_phase

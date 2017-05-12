@@ -1,4 +1,4 @@
-from img_features_mxnet import get_features
+import img_features_mxnet
 
 def extract(image_batch):
     """ 
@@ -14,5 +14,10 @@ def extract(image_batch):
             return np.asarray(img) * 255.0
 
         img_features.extract([get_image('dog'), get_image('cat')])
+
+        NOTE: for best performance, keep the batch size ALWAYS the SAME
     """
-    return get_features(image_batch)
+    if img_features_mxnet._BATCH_SIZE != -1 and img_features_mxnet._BATCH_SIZE != len(image_batch):
+        img_features_mxnet.change_batch_size(len(image_batch))
+
+    return img_features_mxnet.get_features(image_batch)
