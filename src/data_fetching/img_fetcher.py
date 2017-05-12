@@ -22,13 +22,17 @@ def _get_img_by_id(img_dir, img_id):
     img = skimage.io.imread(files[0])
     img = transform.resize(img, IMG_SHAPE)
 
+
     # Modifications to the image if it's a grayscale or contains an alpha channel
     if len(img.shape) == 2:
         img = np.stack([img, img, img], axis=2)
     elif img.shape[2] == 4:
         img = img[:, :, :3]
 
-    return img
+    img = np.swapaxes(img, 0, 2)
+    img = np.swapaxes(img, 1, 2)
+
+    return np.asarray(img) * 255.0
 
 
 # Returns a numpy array containing images and a boolean which is true if we reached the end of the data set

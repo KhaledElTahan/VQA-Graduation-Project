@@ -1,0 +1,23 @@
+import img_features_mxnet
+
+def extract(image_batch):
+    """ 
+        Requires batch of 3x224x224 Images
+        Requires cells of range 0~225
+        Example on how to preprocess the image using skimago.io
+
+        def get_image(file_name):
+            img = skimage.io.imread(file_name)
+            img = transform.resize(img, (224, 224))
+            img = np.swapaxes(img, 0, 2)
+            img = np.swapaxes(img, 1, 2)
+            return np.asarray(img) * 255.0
+
+        img_features.extract([get_image('dog'), get_image('cat')])
+
+        NOTE: for best performance, keep the batch size ALWAYS the SAME
+    """
+    if img_features_mxnet._BATCH_SIZE != -1 and img_features_mxnet._BATCH_SIZE != len(image_batch):
+        img_features_mxnet.change_batch_size(len(image_batch))
+
+    return img_features_mxnet.get_features(image_batch)

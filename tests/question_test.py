@@ -44,6 +44,7 @@ def main(starting_counter):
     tests_basis.create_tests([test_fn] * len(test_args), test_args, test_exps)
     return tests_basis.main_tester("Testing The sentence preprocessing", starting_counter)
 
+
 if __name__ == "__main__":
     tests_basis.set_options(sys.argv)
     main(1)

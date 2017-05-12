@@ -4,10 +4,12 @@ import traceback
 import warnings
 import time
 
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 warnings.filterwarnings("ignore")
 
 sys.path.insert(0, '../..')
 sys.path.insert(0, '../src')
+sys.path.insert(0, '../src/feature_extraction')
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 tests_path = os.path.dirname(os.path.realpath(__file__))
