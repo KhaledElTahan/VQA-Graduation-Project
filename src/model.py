@@ -72,15 +72,15 @@ def validation_acc_loss(sess,
     
     return temp_loss, temp_acc 
 
-def train_model(starting_pos, #done
+def train_model(starting_pos,
                 number_of_iteration,
-                check_point_iteration, #done
-                validation_point_iteration, #done
+                check_point_iteration,
+                validation_point_iteration,
                 learning_rate, 
                 get_data_batch_f,
-                batch_size, #done
-                from_scratch=False,  #done
-                validate=True, #done 
+                batch_size,
+                from_scratch=False,
+                validate=True, 
                 trace=False):
                     
     sess = tf.Session()

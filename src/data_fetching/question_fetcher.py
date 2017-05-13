@@ -53,3 +53,7 @@ def get_question_batch(start_id, batch_size, training_data):
     batch_np = np.stack(batch, axis=0)
 
     return batch_np
+
+def set_questions_data_path(train_data_path, validate_data_path):
+    TRAIN_SET_JSON = train_data_path
+    VAL_SET_JSON = validate_data_path

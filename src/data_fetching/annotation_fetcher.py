@@ -151,3 +151,7 @@ def get_top_answers():
         TOP_ANSWERS_MAP[ans] = i;
 
     return TOP_ANSWERS
+
+def set_annotations_data_path(train_data_path, validate_data_path):
+    TRAIN_SET_JSON = train_data_path
+    VAL_SET_JSON = validate_data_path

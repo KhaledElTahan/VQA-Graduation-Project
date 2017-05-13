@@ -65,3 +65,7 @@ def get_img_batch(start_id, batch_size, training_data):
         batch = np.concatenate((batch, img_threads[i].get_ret_val()), axis=0)
 
     return batch
+
+def set_images_data_path(train_data_path, validate_data_path):
+    TRAIN_SET_DIR = train_data_path
+    VAL_SET_DIR = validate_data_path
