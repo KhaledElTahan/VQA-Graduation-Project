@@ -51,7 +51,7 @@ def get_data_batch(itr, batch_size, training_data):
     images = img_features.extract(images)
     images = np.repeat(images, 3, axis=0)
 
-    #added
+    # added
     questions_vecs = question_batch_to_vecs(questions)
 
     return images, questions_vecs, annotations, actual_batch_size < batch_size

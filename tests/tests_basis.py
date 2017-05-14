@@ -78,6 +78,7 @@ def create_tests(fns, args, exps):
     _arguments = args
     _expected_results = exps
 
+
 _GLOBAL_LINE_LEN = 100
 
 def main_tester(test_name, starting_count):
@@ -178,10 +179,10 @@ def make_time(interval, length=20):
     if interval < 10**-6:
         r1 = '[%.2f' % (interval * 10**9)
         r2 = 'Nano Secs]'
-    if interval < 10**-3:
+    elif interval < 10**-3:
         r1 = '[%.2f' % (interval * 10**6)
         r2 = 'Micro Secs]'
-    if interval < 1:
+    elif interval < 1:
         r1 = '[%.2f' % (interval * 10**3)
         r2 = 'Milli Secs]'
     else:

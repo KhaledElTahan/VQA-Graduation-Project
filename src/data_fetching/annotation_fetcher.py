@@ -3,7 +3,7 @@ import numpy as np
 import operator
 
 # Directories assume that Process Working Directory is the src folder
-TRAIN_SET_JSON = "../data/abstract_v002_val2015_annotations.json"	    # Change it to the large data set later
+TRAIN_SET_JSON = "../data/abstract_v002_val2015_annotations.json"       # Change it to the large data set later
 VAL_SET_JSON = "../data/abstract_v002_val2015_annotations.json"
 
 TRAIN_SET_ANNOTATIONS = None
@@ -111,7 +111,7 @@ def get_top_answers():
 
     top_answers_dict = {}
 
-    annotations = _get_annotations(True);
+    annotations = _get_annotations(True)
 
     for key, answers in annotations.items():
 
@@ -130,14 +130,13 @@ def get_top_answers():
                     top_answers_dict[ans] += 1
                 else:
                     top_answers_dict[ans] = 1
-            else :
+            else:
                 if not (ans in top_answers_dict):
                     top_answers_dict[ans] = 0
-                
-        
-    #return 2 columns array sorted on the second column, the first column is the answer and the second column is the count
-    sorted_top_answers = sorted(top_answers_dict.items(), key=operator.itemgetter(1), reverse = True) 
-    #return the first column of the sorted_top_answers, that are the words
+                   
+    # return 2 columns array sorted on the second column, the first column is the answer and the second column is the count
+    sorted_top_answers = sorted(top_answers_dict.items(), key=operator.itemgetter(1), reverse=True) 
+    # return the first column of the sorted_top_answers, that are the words
 
     if TOP_ANSWERS_COUNT > len(sorted_top_answers):
         raise ValueError("Top answers count is more than the number of answers !\n TOP_ANSWERS_COUNT = " + TOP_ANSWERS_COUNT)
@@ -148,10 +147,12 @@ def get_top_answers():
 
     for i in range(len(TOP_ANSWERS)):
         ans = TOP_ANSWERS[i]
-        TOP_ANSWERS_MAP[ans] = i;
+        TOP_ANSWERS_MAP[ans] = i
 
     return TOP_ANSWERS
 
 def set_annotations_data_path(train_data_path, validate_data_path):
+    global TRAIN_SET_JSON, VAL_SET_JSON
     TRAIN_SET_JSON = train_data_path
     VAL_SET_JSON = validate_data_path
+
