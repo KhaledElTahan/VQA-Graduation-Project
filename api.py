@@ -1,5 +1,5 @@
-from tests import tester
-from src.data_fetching.fetcher  import get_data_batch
+# from tests import tester
+from src.data_fetching.fetcher import get_data_batch
 from src.model import evaluate
 from src.model import train_model
 from src.sentence_preprocess import sentence2vecs
@@ -22,8 +22,8 @@ def train(model_name, batch_size, from_scratch_flag, validate_flag, trace_flag,
 
 def evaluate_example(image, question, model_name):
     image_features = extract(image)
-    question_features = sentence2vecs(question)
-    evaluation_logits = evaluate(image_features, question_features)
+    question_features, words_count = question_batch_to_vecs([question])
+    evaluation_logits = evaluate(image_features, question_features, words_count)
     answer_index = evaluation_logits.index(max(evaluation_logits))
     top_answers = get_top_answers()
     return top_answers[index]

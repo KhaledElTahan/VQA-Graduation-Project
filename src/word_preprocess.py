@@ -10,4 +10,6 @@ def word2vec(word):
     if _WORD2VEC_MODEL is None:
         _load_model()
 
+    if (w == "#"):
+    	return [0]*300
     return _WORD2VEC_MODEL[word]

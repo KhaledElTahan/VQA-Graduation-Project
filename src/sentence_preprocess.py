@@ -6,6 +6,8 @@ from re import sub
 from abbreviations import expand
 from word_preprocess import word2vec
 
+MAX_QUESTION_LENGTH = 30
+
 def _is_word(str):
     return any(char.isdigit() or char.isalpha() for char in str)
 
@@ -52,10 +54,21 @@ def preprocess(sentence):
     return [wordnet_lemmatizer.lemmatize(w, pos=_get_wordnet_pos(t)) for w, t in tagged_words]
 
 def sentence2vecs(sentence):
-    #returns array of  #words in question * 300
-    return [word2vec(w) for w in preprocess(sentence)]
+    sentence_words = preprocess(sentence)
+    words_count = sentence_words.size
+    while (sentence_words.size < MAX_QUESTION_LENGTH):
+        #question padding
+        sentence_words.append("#")
 
-#added
+    return [word2vec(w) for w in sentence_words], words_count
+
 def question_batch_to_vecs(questions):
     #returns array of #question * #words in each question * 300
-    return [sentence2vecs(q) for q in questions]
+    questions_vecs = []
+    questions_length = []
+    for q in questions:
+        question_vec, question_length = sentence2vecs(q)
+        questions_vecs.append(question_vec)
+        questions_length.append(question_length)
+    
+    return np.stack(questions_vecs, axis = 0), np.array(questions_length)

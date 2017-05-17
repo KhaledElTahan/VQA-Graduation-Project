@@ -11,19 +11,19 @@ def dense_batch_relu(input_ph, phase, output_size, name=None):
     return tf.nn.relu(h2, name)
 
 # question_ph is batchSize*#wordsInEachQuestion*300
-def question_lstm_model(questions_ph, phase_ph, cell_size, layers_num):
+def question_lstm_model(questions_ph, phase_ph, questions_length_ph, cell_size, layers_num):
     mcell = rnn.MultiRNNCell([rnn.LSTMCell(cell_size, state_is_tuple=True) for _ in range(layers_num)])
     init_state = mcell.zero_state(tf.shape(questions_ph)[0], tf.float32) 
-    _, final_state = tf.nn.dynamic_rnn(mcell, questions_ph, initial_state=init_state)
+    _, final_state = tf.nn.dynamic_rnn(mcell, questions_ph, sequence_length = questions_length_ph, initial_state=init_state)
     
     combined_states = tf.stack(final_state, 1)
     combined_states = tf.reshape(combined_states, [-1, cell_size * layers_num * 2])
 
     return dense_batch_relu(combined_states, phase_ph, 1024)  # The questions features
 
-def abstract_model(questions_ph, img_features_ph, phase_ph, cell_size=512, layers_num=2):
+def abstract_model(questions_ph, img_features_ph, phase_ph, questions_length_ph, cell_size=512, layers_num=2):
 
-    question_features = question_lstm_model(questions_ph, phase_ph, cell_size, layers_num)
+    question_features = question_lstm_model(questions_ph, phase_ph, questions_length_ph, cell_size, layers_num)
     img_features = dense_batch_relu(img_features_ph, phase_ph, 1024)
 
     fused_features_first = tf.multiply(img_features, question_features)
@@ -47,6 +47,7 @@ def validation_acc_loss(sess,
                         images_place_holder,
                         questions_place_holder,
                         labels_place_holder,
+                        questions_length_place_holder,
                         phase_ph,
                         get_data_batch_f,
                         accuracy,
@@ -56,11 +57,11 @@ def validation_acc_loss(sess,
     
     itr = 0
     while True:
-        images_batch, questions_batch, labels_batch, end_of_data = get_data_batch_f(itr * batch_size, batch_size, training_data=False)
+        images_batch, questions_batch, questions_length, labels_batch, end_of_data = get_data_batch_f(itr * batch_size, batch_size, training_data=False)
         if(end_of_data):
             break
         
-        feed_dict = {questions_place_holder: questions_batch, images_place_holder: images_batch, labels_place_holder: labels_batch, phase_ph: 0}
+        feed_dict = {questions_place_holder: questions_batch, images_place_holder: images_batch, labels_place_holder: labels_batch, questions_length_place_holder:questions_length, phase_ph: 0}
         l, a = sess.run([loss, accuracy], feed_dict=feed_dict)
         
         itr += 1
@@ -86,11 +87,11 @@ def train_model(starting_pos,
     sess = tf.Session()
     
     if from_scratch:
-        questions_place_holder, images_place_holder, labels_place_holder, logits, loss, accuarcy, phase_ph = _train_from_scratch(sess) 
+        questions_place_holder, images_place_holder, labels_place_holder, questions_length_place_holder, logits, loss, accuarcy, phase_ph = _train_from_scratch(sess) 
         init = tf.global_variables_initializer()
         sess.run(init)
     else:
-        questions_place_holder, images_place_holder, labels_place_holder, logits, loss, accuarcy, phase_ph, starting_pos = _get_saved_graph_tensors(sess)
+        questions_place_holder, images_place_holder, labels_place_holder, questions_length_place_holder, logits, loss, accuarcy, phase_ph, starting_pos = _get_saved_graph_tensors(sess)
     
     optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
 
@@ -102,8 +103,8 @@ def train_model(starting_pos,
     saver = tf.train.Saver(max_to_keep=5)
     
     for i in range(number_of_iteration):
-        images_batch, questions_batch, labels_batch, _ = get_data_batch_f(starting_pos + i * batch_size, batch_size, training_data=True)
-        feed_dict = {questions_place_holder: questions_batch, images_place_holder: images_batch, labels_place_holder: labels_batch, phase_ph: 1}
+        images_batch, questions_batch, questions_length, labels_batch, _ = get_data_batch_f(starting_pos + i * batch_size, batch_size, training_data=True)
+        feed_dict = {questions_place_holder: questions_batch, images_place_holder: images_batch, labels_place_holder: labels_batch, questions_length_place_holder:questions_length, phase_ph: 1}
         
         _, training_loss, training_acc = sess.run([train_step, loss, accuarcy], feed_dict=feed_dict)
         
@@ -112,6 +113,7 @@ def train_model(starting_pos,
                                                                   images_place_holder,
                                                                   questions_place_holder,
                                                                   labels_place_holder,
+                                                                  questions_length_place_holder,
                                                                   phase_ph,
                                                                   get_data_batch_f, accuarcy, loss)
         
@@ -163,14 +165,15 @@ def _train_from_scratch(sess):
     questions_place_holder = tf.placeholder(tf.float32, [None, None, 300], name='questions_place_holder') 
     images_place_holder = tf.placeholder(tf.float32, [None, 2048], name='imagess_place_holder')
     labels_place_holder = tf.placeholder(tf.float32, [None, 1000], name='labels_place_holder')
+    questions_length_place_holder = tf.placeholder(tf.int32, [None], name='questions_length_place_holder')
     
     bn_phase = tf.placeholder(tf.bool, [], name='bn_phase')
 
-    logits = tf.identity(abstract_model(questions_place_holder, images_place_holder, bn_phase), name="logits")
+    logits = tf.identity(abstract_model(questions_place_holder, images_place_holder, questions_length_place_holder, bn_phase), name="logits")
     loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=labels_place_holder), name='loss')
-    accuarcy = _accuracy(tf.nn.softmax(logits), labels_place_holder) 
+    accuarcy = _accuracy(tf.nn.softmax(logits), labels_place_holder)
 
-    return questions_place_holder, images_place_holder, labels_place_holder, logits, loss, accuarcy, bn_phase
+    return questions_place_holder, images_place_holder, labels_place_holder, questions_length_place_holder, logits, loss, accuarcy, bn_phase
 
 def _get_saved_graph_tensors(sess):
     
@@ -181,6 +184,7 @@ def _get_saved_graph_tensors(sess):
     questions_place_holder = _MAIN_MODEL_GRAPH.get_tensor_by_name("questions_place_holder:0") 
     images_place_holder = _MAIN_MODEL_GRAPH.get_tensor_by_name("images_place_holder:0")
     labels_place_holder = _MAIN_MODEL_GRAPH.get_tensor_by_name("labels_place_holder:0")
+    questions_length_place_holder = _MAIN_MODEL_GRAPH.get_tensor_by_name("questions_length_place_holder:0")
     
     bn_phase = _MAIN_MODEL_GRAPH.get_tensor_by_name("bn_phase:0")
 
@@ -188,14 +192,14 @@ def _get_saved_graph_tensors(sess):
     loss = _MAIN_MODEL_GRAPH.get_tensor_by_name("loss:0")
     accuarcy = _MAIN_MODEL_GRAPH.get_tensor_by_name("accuarcy:0")
 
-    return questions_place_holder, images_place_holder, labels_place_holder, logits, loss, accuarcy, bn_phase, last_index
+    return questions_place_holder, images_place_holder, labels_place_holder, questions_length_place_holder, logits, loss, accuarcy, bn_phase, last_index
 
-def evaluate(image_features, question_features):
+def evaluate(image_features, question_features, questions_length):
 
     sess = tf.Session()
-    questions_place_holder, images_place_holder, labels_place_holder, logits, _, _, phase_ph = _get_saved_graph_tensors(sess)
+    questions_place_holder, images_place_holder, labels_place_holder, questions_length_place_holder,logits, _, _, phase_ph = _get_saved_graph_tensors(sess)
 
-    feed_dict = {questions_place_holder: question_features, images_place_holder: image_features, phase_ph: 0}
+    feed_dict = {questions_place_holder: question_features, images_place_holder: image_features, questions_length_place_holder:questions_length, phase_ph: 0}
     
     results = tf.nn.softmax(logits)
 
