@@ -55,5 +55,6 @@ def get_question_batch(start_id, batch_size, training_data):
     return batch_np
 
 def set_questions_data_path(train_data_path, validate_data_path):
+    global TRAIN_SET_JSON, VAL_SET_JSON
     TRAIN_SET_JSON = train_data_path
     VAL_SET_JSON = validate_data_path

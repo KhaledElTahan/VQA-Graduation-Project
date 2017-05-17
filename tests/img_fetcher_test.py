@@ -12,16 +12,17 @@ def main(starting_counter):
     test_args, test_exps = [], []
 
     test_args.append([29994, 6, False])
-    test_exps.append((6, 224, 224, 3))
+    test_exps.append((6, 3, 224, 224))
 
-    test_args.append([29900, 32, False])
-    test_exps.append((32, 224, 224, 3))
+    test_args.append([29900, 3, False])
+    test_exps.append((3, 3, 224, 224))
 
-    test_args.append([20000, 20, False])
-    test_exps.append((20, 224, 224, 3))
+    test_args.append([20000, 5, False])
+    test_exps.append((5, 3, 224, 224))
 
     tests_basis.create_tests([test_fn] * len(test_args), test_args, test_exps)
     return tests_basis.main_tester("Testing image batch loading", starting_counter)
+
 
 if __name__ == "__main__":
     tests_basis.set_options(sys.argv)
