@@ -14,14 +14,14 @@ def dense_batch_relu(input_ph, phase, output_size, name=None):
 def question_lstm_model(questions_ph, phase_ph, questions_length_ph, cell_size, layers_num):
     mcell = rnn.MultiRNNCell([rnn.LSTMCell(cell_size, state_is_tuple=True) for _ in range(layers_num)])
     init_state = mcell.zero_state(tf.shape(questions_ph)[0], tf.float32) 
-    _, final_state = tf.nn.dynamic_rnn(mcell, questions_ph, sequence_length = questions_length_ph, initial_state=init_state)
+    _, final_state = tf.nn.dynamic_rnn(mcell, questions_ph, sequence_length=questions_length_ph, initial_state=init_state)
     
     combined_states = tf.stack(final_state, 1)
     combined_states = tf.reshape(combined_states, [-1, cell_size * layers_num * 2])
 
     return dense_batch_relu(combined_states, phase_ph, 1024)  # The questions features
 
-def abstract_model(questions_ph, img_features_ph, phase_ph, questions_length_ph, cell_size=512, layers_num=2):
+def abstract_model(questions_ph, img_features_ph, questions_length_ph, phase_ph, cell_size=512, layers_num=2):
 
     question_features = question_lstm_model(questions_ph, phase_ph, questions_length_ph, cell_size, layers_num)
     img_features = dense_batch_relu(img_features_ph, phase_ph, 1024)
@@ -88,8 +88,6 @@ def train_model(starting_pos,
     
     if from_scratch:
         questions_place_holder, images_place_holder, labels_place_holder, questions_length_place_holder, logits, loss, accuarcy, phase_ph = _train_from_scratch(sess) 
-        init = tf.global_variables_initializer()
-        sess.run(init)
     else:
         questions_place_holder, images_place_holder, labels_place_holder, questions_length_place_holder, logits, loss, accuarcy, phase_ph, starting_pos = _get_saved_graph_tensors(sess)
     
@@ -100,11 +98,19 @@ def train_model(starting_pos,
         # Ensures that we execute the update_ops before performing the train_step
         train_step = optimizer.minimize(loss)
 
+    if from_scratch:
+        init = tf.initialize_all_variables()
+        sess.run(init)
+
     saver = tf.train.Saver(max_to_keep=5)
     
     for i in range(number_of_iteration):
         images_batch, questions_batch, questions_length, labels_batch, _ = get_data_batch_f(starting_pos + i * batch_size, batch_size, training_data=True)
-        feed_dict = {questions_place_holder: questions_batch, images_place_holder: images_batch, labels_place_holder: labels_batch, questions_length_place_holder:questions_length, phase_ph: 1}
+        feed_dict = {questions_place_holder: questions_batch,
+                     images_place_holder: images_batch, 
+                     labels_place_holder: labels_batch, 
+                     questions_length_place_holder: questions_length, 
+                     phase_ph: 1}
         
         _, training_loss, training_acc = sess.run([train_step, loss, accuarcy], feed_dict=feed_dict)
         
@@ -118,12 +124,10 @@ def train_model(starting_pos,
                                                                   get_data_batch_f, accuarcy, loss)
         
         if i and i % check_point_iteration == 0:
-            saver.save(sess, os.path.join(os.getcwd(), "main_model"), global_step=starting_pos + (i + 1) * batch_size)
+            saver.save(sess, os.path.join(os.getcwd(), "main_model"), global_step=starting_pos + (i + 1) * batch_size * 3)
         
-        # if trace:
-            # _print_statistics()
-            # print("Training Loss :", training_loss_result)
-            # print("Training Accuracy :", training_acc_result)
+        if trace:
+            print('Iteration[{}]: (Accuracy: {}%, Loss: {})'.format(i, training_acc, training_loss))
         
     sess.close()
 

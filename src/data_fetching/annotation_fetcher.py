@@ -3,8 +3,8 @@ import numpy as np
 import operator
 
 # Directories assume that Process Working Directory is the src folder
-TRAIN_SET_JSON = "../data/abstract_v002_val2015_annotations.json"       # Change it to the large data set later
-VAL_SET_JSON = "../data/abstract_v002_val2015_annotations.json"
+TRAIN_SET_JSON = "/home/khaled/projects/VQA/data/abstract_v002_val2015_annotations.json"       # Change it to the large data set later
+VAL_SET_JSON = "/home/khaled/projects/VQA/data/abstract_v002_val2015_annotations.json"
 
 TRAIN_SET_ANNOTATIONS = None
 VAL_SET_ANNOTATIONS = None

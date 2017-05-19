@@ -6,8 +6,8 @@ import numpy as np
 import glob
 
 # Directories assume that Process Working Directory is the src folder
-TRAIN_SET_DIR = "../data/scene_img_abstract_v002_val2015/"  # Change it to the large data set later
-VAL_SET_DIR = "../data/scene_img_abstract_v002_val2015/"
+TRAIN_SET_DIR = "/home/khaled/projects/VQA/data/scene_img_abstract_v002_val2015/"  # Change it to the large data set later
+VAL_SET_DIR = "/home/khaled/projects/VQA/data/scene_img_abstract_v002_val2015/"
 IMG_SHAPE = (224, 224)  # Used image shape for resizing
 IMG_PER_THREAD = 8  # Number of images loaded per thread determined by trial and error according to the batch size
 

@@ -4,6 +4,7 @@ from data_fetching.fetcher import get_data_batch
 
 def test_fn(args):
     images, questions, annotations, eof = get_data_batch(args[0], args[1], args[2])
+    print(questions)
     return [images.shape, questions.shape, annotations.shape, eof]
 
 

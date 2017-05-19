@@ -2,8 +2,8 @@ import json
 import numpy as np
 
 # Directories assume that Process Working Directory is the src folder
-TRAIN_SET_JSON = "../data/OpenEnded_abstract_v002_val2015_questions.json"	    # Change it to the large data set later
-VAL_SET_JSON = "../data/OpenEnded_abstract_v002_val2015_questions.json"
+TRAIN_SET_JSON = "/home/khaled/projects/VQA/data/OpenEnded_abstract_v002_val2015_questions.json"	    # Change it to the large data set later
+VAL_SET_JSON = "/home/khaled/projects/VQA/data/OpenEnded_abstract_v002_val2015_questions.json"
 
 TRAIN_SET_QUESTIONS = None
 VAL_SET_QUESTIONS = None

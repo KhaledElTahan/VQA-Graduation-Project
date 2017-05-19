@@ -1,5 +1,4 @@
 import numpy as np
-import tensorflow as tf
 from data_fetching.img_fetcher import get_img_batch
 from data_fetching.question_fetcher import get_question_batch
 from data_fetching.annotation_fetcher import get_annotation_batch
@@ -52,9 +51,8 @@ def get_data_batch(itr, batch_size, training_data):
     images = img_features.extract(images)
     images = np.repeat(images, 3, axis=0)
 
-    #question_batch_to_vecs return numpy array of Batch_size*MAX_QUESTION_LENGTH*300
-    #convert numpy array to tensor to be used in RNN
+    # question_batch_to_vecs return numpy array of Batch_size*MAX_QUESTION_LENGTH*300
+    # convert numpy array to tensor to be used in RNN
     questions_vecs, questions_length = question_batch_to_vecs(questions)
     # questions_vecs_tensor = tf.convert_to_tensor(questions_vecs)
-
     return images, questions_vecs, questions_length, annotations, actual_batch_size < batch_size
