@@ -67,9 +67,14 @@ def question_batch_to_vecs(questions):
     # returns array of #question * #words in each question * 300
     questions_vecs = []
     questions_length = []
+
     for q in questions:
         question_vec, question_length = sentence2vecs(q)
         questions_vecs.append(question_vec)
         questions_length.append(question_length)
+
+    if len(questions) == 0:
+        return np.array(questions_vecs), np.array(questions_length)
+
     return np.stack(questions_vecs, axis=0), np.array(questions_length)
     
