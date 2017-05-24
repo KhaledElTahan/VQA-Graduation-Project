@@ -88,23 +88,22 @@ def train_model(starting_pos,
     
     if from_scratch:
         questions_place_holder, images_place_holder, labels_place_holder, questions_length_place_holder, logits, loss, accuarcy, phase_ph = _train_from_scratch(sess) 
-    else:
-        questions_place_holder, images_place_holder, labels_place_holder, questions_length_place_holder, logits, loss, accuarcy, phase_ph, starting_pos = _get_saved_graph_tensors(sess)
-    
-    optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
+        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, name="optimizer")
 
-    update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
-    with tf.control_dependencies(update_ops):
-        # Ensures that we execute the update_ops before performing the train_step
-        train_step = optimizer.minimize(loss)
+        update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+        with tf.control_dependencies(update_ops):
+            # Ensures that we execute the update_ops before performing the train_step
+            train_step = optimizer.minimize(loss, name='train_step')
 
-    if from_scratch:
         init = tf.initialize_all_variables()
         sess.run(init)
+    else:
+        questions_place_holder, images_place_holder, labels_place_holder, questions_length_place_holder, logits, loss, accuarcy, phase_ph, starting_pos, train_step = _get_saved_graph_tensors(sess)
+
 
     saver = tf.train.Saver(max_to_keep=5)
     
-    for i in range(number_of_iteration):
+    for i in range(1, number_of_iteration+1):
         images_batch, questions_batch, questions_length, labels_batch, _ = get_data_batch_f(starting_pos + i * batch_size, batch_size, training_data=True)
         feed_dict = {questions_place_holder: questions_batch,
                      images_place_holder: images_batch, 
@@ -114,7 +113,7 @@ def train_model(starting_pos,
         
         _, training_loss, training_acc = sess.run([train_step, loss, accuarcy], feed_dict=feed_dict)
         
-        if validate and i and i % validation_point_iteration == 0:
+        if validate and i % validation_point_iteration == 0:
             validation_loss, validation_acc = validation_acc_loss(sess,
                                                                   images_place_holder,
                                                                   questions_place_holder,
@@ -123,8 +122,8 @@ def train_model(starting_pos,
                                                                   phase_ph,
                                                                   get_data_batch_f, accuarcy, loss)
         
-        if i and i % check_point_iteration == 0:
-            saver.save(sess, os.path.join(os.getcwd(), "main_model"), global_step=starting_pos + (i + 1) * batch_size * 3)
+        if i % check_point_iteration == 0:
+            saver.save(sess, os.path.join(os.getcwd(), "models/VQA_model/main_model"), global_step=starting_pos + (i + 1) * batch_size * 3)
         
         if trace:
             print('Iteration[{}]: (Accuracy: {}%, Loss: {})'.format(i, training_acc, training_loss))
@@ -143,9 +142,7 @@ def _load_model(sess):
     return last_index
 
 def _get_last_main_model_path():
-    path = "model_data/"
-
-    checkpoint_file = open('checkpoint', 'r')
+    checkpoint_file = open('./models/VQA_model/checkpoint', 'r')
     meta_graph_path = None
     data_path = None
     lst_indx = 0
@@ -161,13 +158,13 @@ def _get_last_main_model_path():
             lst_indx = int(word[strt2 + 1:len(word)])
             
     if word is not None:
-        meta_graph_path = word + ".meta"
-        data_path = "./" + word
+        meta_graph_path = "./models/VQA_model/" + word + ".meta"
+        data_path = "./models/VQA_model/" + word
     return meta_graph_path, data_path, lst_indx
 
 def _train_from_scratch(sess):
     questions_place_holder = tf.placeholder(tf.float32, [None, None, 300], name='questions_place_holder') 
-    images_place_holder = tf.placeholder(tf.float32, [None, 2048], name='imagess_place_holder')
+    images_place_holder = tf.placeholder(tf.float32, [None, 2048], name='images_place_holder')
     labels_place_holder = tf.placeholder(tf.float32, [None, 1000], name='labels_place_holder')
     questions_length_place_holder = tf.placeholder(tf.int32, [None], name='questions_length_place_holder')
     
@@ -196,7 +193,9 @@ def _get_saved_graph_tensors(sess):
     loss = _MAIN_MODEL_GRAPH.get_tensor_by_name("loss:0")
     accuarcy = _MAIN_MODEL_GRAPH.get_tensor_by_name("accuarcy:0")
 
-    return questions_place_holder, images_place_holder, labels_place_holder, questions_length_place_holder, logits, loss, accuarcy, bn_phase, last_index
+    optimizer = _MAIN_MODEL_GRAPH.get_operation_by_name("train_step")
+
+    return questions_place_holder, images_place_holder, labels_place_holder, questions_length_place_holder, logits, loss, accuarcy, bn_phase, last_index, optimizer
 
 def evaluate(image_features, question_features, questions_length):
 
