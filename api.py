@@ -6,7 +6,7 @@ sys.path.insert(0, 'src/feature_extraction')
 
 from src.model import evaluate
 from src.model import train_model
-from src.data_fetching.fetcher import get_data_batch
+from src.data_fetching.data_fetcher import DataFetcher
 from src.feature_extraction.img_features import extract
 from src.data_fetching.annotation_fetcher import get_top_answers
 from src.data_fetching.annotation_fetcher import set_annotations_data_path

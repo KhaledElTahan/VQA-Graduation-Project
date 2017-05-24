@@ -88,7 +88,7 @@ def train_model(starting_pos,
     
     if from_scratch:
         questions_place_holder, images_place_holder, labels_place_holder, questions_length_place_holder, logits, loss, accuarcy, phase_ph = _train_from_scratch(sess) 
-        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate, name="optimizer")
+        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
 
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
         with tf.control_dependencies(update_ops):
@@ -100,10 +100,9 @@ def train_model(starting_pos,
     else:
         questions_place_holder, images_place_holder, labels_place_holder, questions_length_place_holder, logits, loss, accuarcy, phase_ph, starting_pos, train_step = _get_saved_graph_tensors(sess)
 
-
     saver = tf.train.Saver(max_to_keep=5)
     
-    for i in range(1, number_of_iteration+1):
+    for i in range(1, number_of_iteration + 1):
         images_batch, questions_batch, questions_length, labels_batch, _ = get_data_batch_f(starting_pos + i * batch_size, batch_size, training_data=True)
         feed_dict = {questions_place_holder: questions_batch,
                      images_place_holder: images_batch, 
@@ -193,19 +192,17 @@ def _get_saved_graph_tensors(sess):
     loss = _MAIN_MODEL_GRAPH.get_tensor_by_name("loss:0")
     accuarcy = _MAIN_MODEL_GRAPH.get_tensor_by_name("accuarcy:0")
 
-    optimizer = _MAIN_MODEL_GRAPH.get_operation_by_name("train_step")
+    train_step = _MAIN_MODEL_GRAPH.get_operation_by_name("train_step")
 
-    return questions_place_holder, images_place_holder, labels_place_holder, questions_length_place_holder, logits, loss, accuarcy, bn_phase, last_index, optimizer
+    return questions_place_holder, images_place_holder, labels_place_holder, questions_length_place_holder, logits, loss, accuarcy, bn_phase, last_index, train_step
 
 def evaluate(image_features, question_features, questions_length):
 
     sess = tf.Session()
-    questions_place_holder, images_place_holder, labels_place_holder, questions_length_place_holder,logits, _, _, phase_ph = _get_saved_graph_tensors(sess)
-
-    feed_dict = {questions_place_holder: question_features, images_place_holder: image_features, questions_length_place_holder:questions_length, phase_ph: 0}
+    questions_place_holder, images_place_holder, labels_place_holder, questions_length_place_holder, logits, _, _, phase_ph = _get_saved_graph_tensors(sess)
+    feed_dict = {questions_place_holder: question_features, images_place_holder: image_features, questions_length_place_holder: questions_length, phase_ph: 0}
     
     results = tf.nn.softmax(logits)
-
     evaluation_logits = sess.run([results], feed_dict=feed_dict)
 
     return evaluation_logits
