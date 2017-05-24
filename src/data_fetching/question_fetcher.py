@@ -41,3 +41,8 @@ def get_questions_batch(start, batch_size, file_name):
         batch.append(all_questions[i])
 
     return batch
+
+def get_questions_len(file_name):
+
+    all_questions = _get_questions(file_name)
+    return len(all_questions)

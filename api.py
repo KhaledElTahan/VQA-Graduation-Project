@@ -9,9 +9,6 @@ from src.model import train_model
 from src.data_fetching.data_fetcher import DataFetcher
 from src.feature_extraction.img_features import extract
 from src.data_fetching.annotation_fetcher import get_top_answers
-from src.data_fetching.annotation_fetcher import set_annotations_data_path
-from src.data_fetching.img_fetcher import set_images_data_path
-from src.data_fetching.question_fetcher import set_questions_data_path
 from src.sentence_preprocess import question_batch_to_vecs
 
 def run_tests(system_args):
@@ -28,14 +25,13 @@ def train(model_name,
           number_of_iteration, 
           starting_training_point):
 
-    learning_rate = 1e-4 
-    # _set_data_paths(train_data_path, validate_data_path)
+    learning_rate = 1e-4
+    
     train_model(starting_training_point,
                 number_of_iteration,
                 checkpoint_itr, 
                 validation_itr, 
-                learning_rate, 
-                get_data_batch, 
+                learning_rate,  
                 batch_size, 
                 from_scratch_flag, 
                 validate_flag, 
@@ -62,3 +58,6 @@ def _set_data_paths(train_data_path, validate_data_path):
     set_images_data_path(train_data_path, validate_data_path)
     set_annotations_data_path(train_data_path, validate_data_path)
     set_questions_data_path(train_data_path, validate_data_path)
+
+
+train("7amada", 32, True, True, True, 0, 0, 10, 0)

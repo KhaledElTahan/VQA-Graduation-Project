@@ -1,6 +1,7 @@
 import tensorflow as tf
 from tensorflow.contrib import layers
 from tensorflow.contrib import rnn
+from src.data_fetching.data_fetcher import DataFetcher
 import os 
 
 _MAIN_MODEL_GRAPH = None
@@ -12,7 +13,9 @@ def dense_batch_relu(input_ph, phase, output_size, name=None):
 
 # question_ph is batchSize*#wordsInEachQuestion*300
 def question_lstm_model(questions_ph, phase_ph, questions_length_ph, cell_size, layers_num):
+	
     mcell = rnn.MultiRNNCell([rnn.LSTMCell(cell_size, state_is_tuple=True) for _ in range(layers_num)])
+
     init_state = mcell.zero_state(tf.shape(questions_ph)[0], tf.float32) 
     _, final_state = tf.nn.dynamic_rnn(mcell, questions_ph, sequence_length=questions_length_ph, initial_state=init_state)
     
@@ -49,15 +52,18 @@ def validation_acc_loss(sess,
                         labels_place_holder,
                         questions_length_place_holder,
                         phase_ph,
-                        get_data_batch_f,
                         accuracy,
                         loss):
     temp_acc = 0.0
     temp_loss = 0.0
     
     itr = 0
+
+    val_data_fetcher = DataFetcher('validation', batch_size=batch_size)
+
     while True:
-        images_batch, questions_batch, questions_length, labels_batch, end_of_data = get_data_batch_f(itr * batch_size, batch_size, training_data=False)
+
+        images_batch, questions_batch, questions_length, labels_batch, end_of_data = val_data_fetcher.get_next_batch() 
         if(end_of_data):
             break
         
@@ -78,7 +84,6 @@ def train_model(starting_pos,
                 check_point_iteration,
                 validation_point_iteration,
                 learning_rate, 
-                get_data_batch_f,
                 batch_size,
                 from_scratch=False,
                 validate=True, 
@@ -101,9 +106,13 @@ def train_model(starting_pos,
         questions_place_holder, images_place_holder, labels_place_holder, questions_length_place_holder, logits, loss, accuarcy, phase_ph, starting_pos, train_step = _get_saved_graph_tensors(sess)
 
     saver = tf.train.Saver(max_to_keep=5)
+
+    train_data_fetcher = DataFetcher('validation', batch_size=batch_size, start_itr=starting_pos)
     
     for i in range(1, number_of_iteration + 1):
-        images_batch, questions_batch, questions_length, labels_batch, _ = get_data_batch_f(starting_pos + i * batch_size, batch_size, training_data=True)
+
+        images_batch, questions_batch, questions_length, labels_batch, _ = train_data_fetcher.get_next_batch()
+
         feed_dict = {questions_place_holder: questions_batch,
                      images_place_holder: images_batch, 
                      labels_place_holder: labels_batch, 
@@ -118,8 +127,7 @@ def train_model(starting_pos,
                                                                   questions_place_holder,
                                                                   labels_place_holder,
                                                                   questions_length_place_holder,
-                                                                  phase_ph,
-                                                                  get_data_batch_f, accuarcy, loss)
+                                                                  phase_ph, accuarcy, loss)
         
         if i % check_point_iteration == 0:
             saver.save(sess, os.path.join(os.getcwd(), "models/VQA_model/main_model"), global_step=starting_pos + (i + 1) * batch_size * 3)

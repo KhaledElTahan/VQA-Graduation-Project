@@ -53,15 +53,15 @@ def get_path(evaluation_type, data_set_type, data_type):
 
             if data_type == 'annotations':
                 
-                ret_path = os.path.join(ret_path, 'abstract_v002_train2015_annotations.json')
+                ret_path = os.path.join(ret_path, 'abstract_v002_val2015_annotations.json')
 
             elif data_type == 'questions':
                 
-                ret_path = os.path.join(ret_path, '7amada.json')
+                ret_path = os.path.join(ret_path, 'OpenEnded_abstract_v002_val2015_questions.json')
 
             elif data_type == 'images':
                 
-                ret_path = os.path.join(ret_path, 'images/')
+                ret_path = os.path.join(ret_path, 'scene_img_abstract_v002_val2015\\')
 
     elif evaluation_type == 'validation':
 

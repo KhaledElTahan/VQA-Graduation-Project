@@ -64,7 +64,7 @@ def expand_answer(answers_pair):
     global TOP_ANSWERS_MAP, TOP_ANSWERS_LIST
 
     if TOP_ANSWERS_MAP is None:
-        TOP_ANSWERS_MAP, TOP_ANSWERS = get_top_answers_map()
+        TOP_ANSWERS_MAP, TOP_ANSWERS_LIST = get_top_answers_map()
 
     answers_dict = {}
     expanded_answer = [0] * TOP_ANSWERS_COUNT
@@ -98,6 +98,12 @@ def expand_answer(answers_pair):
 
     return expanded_answer
 
+
+def get_top_answers():
+    if TOP_ANSWERS_MAP is None:
+        TOP_ANSWERS_MAP, TOP_ANSWERS_LIST = get_top_answers_map()
+
+    return TOP_ANSWERS_LIST
 
 # Returns the top answers 
 def get_top_answers_map():
