@@ -13,7 +13,7 @@ def dense_batch_relu(input_ph, phase, output_size, name=None):
 
 # question_ph is batchSize*#wordsInEachQuestion*300
 def question_lstm_model(questions_ph, phase_ph, questions_length_ph, cell_size, layers_num):
-	
+    
     mcell = rnn.MultiRNNCell([rnn.LSTMCell(cell_size, state_is_tuple=True) for _ in range(layers_num)])
 
     init_state = mcell.zero_state(tf.shape(questions_ph)[0], tf.float32) 
@@ -73,14 +73,15 @@ def validation_acc_loss(sess,
         itr += 1
         temp_acc += a
         temp_loss += l
+
+        print("VALIDATION:: Iteration[{}]".format(itr))
     
     temp_acc /= itr
     temp_loss /= itr
     
     return temp_loss, temp_acc 
 
-def train_model(starting_pos,
-                number_of_iteration,
+def train_model(number_of_iteration,
                 check_point_iteration,
                 validation_point_iteration,
                 learning_rate, 
@@ -102,6 +103,8 @@ def train_model(starting_pos,
 
         init = tf.initialize_all_variables()
         sess.run(init)
+
+        starting_pos = 0
     else:
         questions_place_holder, images_place_holder, labels_place_holder, questions_length_place_holder, logits, loss, accuarcy, phase_ph, starting_pos, train_step = _get_saved_graph_tensors(sess)
 
@@ -133,7 +136,7 @@ def train_model(starting_pos,
             saver.save(sess, os.path.join(os.getcwd(), "models/VQA_model/main_model"), global_step=starting_pos + (i + 1) * batch_size * 3)
         
         if trace:
-            print('Iteration[{}]: (Accuracy: {}%, Loss: {})'.format(i, training_acc, training_loss))
+            print('TRAINING:: Iteration[{}]: (Accuracy: {}%, Loss: {})'.format(i, training_acc, training_loss))
         
     sess.close()
 
