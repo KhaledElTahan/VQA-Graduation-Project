@@ -5,7 +5,7 @@ from data_fetching.annotation_fetcher import get_annotations_batch
 from data_fetching.multithreading import FuncThread
 from data_fetching.data_path import get_path
 from sentence_preprocess import question_batch_to_vecs
-from feature_extraction import img_features
+#from feature_extraction import img_features
 
 
 class DataFetcher:
@@ -64,7 +64,8 @@ class DataFetcher:
     def images_to_features(self, images_dict):
 
         image_ids, batch = list(images_dict.keys()), list(images_dict.values())
-        features = img_features.extract(batch)
+        #features = img_features.extract(batch)
+        features = np.random.rand(len(batch), 2048)
 
         for i in range(len(features)):                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
             images_dict[image_ids[i]] = features[i]
@@ -128,18 +129,19 @@ class DataFetcher:
         questions_all = get_questions_batch(self.get_dataset_iterator(), batch_size, self.get_questions_path())
 
         # Extract features from questions
-        question_features_thread = FuncThread(self.questions_to_features, questions_all)
+        #question_features_thread = FuncThread(self.questions_to_features, questions_all)
         
         # Load and extract features from images
-        images_dict_thread = FuncThread(self.load_images, questions_all)
+        #images_dict_thread = FuncThread(self.load_images, questions_all)
 
         # Load annotations
-        annotations_dict_thread = FuncThread(self.load_annotations, questions_all)
+        #annotations_dict_thread = FuncThread(self.load_annotations, questions_all)
 
         # Link questions with images and annotations using ids
-        annotations, images = self.merge_by_id(questions_all, annotations_dict_thread.get_ret_val(), images_dict_thread.get_ret_val())
+        #annotations, images = self.merge_by_id(questions_all, annotations_dict_thread.get_ret_val(), images_dict_thread.get_ret_val())
 
-        questions_vecs, questions_length = question_features_thread.get_ret_val()
+        annotations, images = self.merge_by_id(questions_all, self.load_annotations(questions_all), self.load_images(questions_all))
+        questions_vecs, questions_length = self.questions_to_features(questions_all)
 
         # Updates state of the loader to prepare for the next batch
         self.update_state(len(questions_all))

@@ -46,19 +46,19 @@ def _get_imgs_batch(img_dir, image_ids):
 # Overloaded for data set type and multi-threading
 def get_imgs_batch(image_ids, img_dir):
 
-    num_threads = math.ceil(len(image_ids) / IMG_PER_THREAD)
-    img_threads = []
+    # num_threads = math.ceil(len(image_ids) / IMG_PER_THREAD)
+    # img_threads = []
 
-    for i in range(0, num_threads):
+    # for i in range(0, num_threads):
 
-        ids_slice = image_ids[0: min(IMG_PER_THREAD, len(image_ids))]
-        image_ids = image_ids[len(ids_slice):]
+    #     ids_slice = image_ids[0: min(IMG_PER_THREAD, len(image_ids))]
+    #     image_ids = image_ids[len(ids_slice):]
 
-        img_threads.append(FuncThread(_get_imgs_batch, img_dir, ids_slice))
+    #     img_threads.append(FuncThread(_get_imgs_batch, img_dir, ids_slice))
 
-    batch = {}
+    #batch = {}
 
-    for i in range(0, num_threads):
-        batch = {**batch, **img_threads[i].get_ret_val()}
+    # for i in range(0, num_threads):
+    #     batch = {**batch, **img_threads[i].get_ret_val()}
 
-    return batch
+    return _get_imgs_batch(img_dir, image_ids)
