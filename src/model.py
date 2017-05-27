@@ -2,6 +2,7 @@ import tensorflow as tf
 from tensorflow.contrib import layers
 from tensorflow.contrib import rnn
 from src.data_fetching.data_fetcher import DataFetcher
+import numpy as np
 import os 
 
 _MAIN_MODEL_GRAPH = None
@@ -45,6 +46,10 @@ def _accuracy(predictions, labels):  # Top 1000 accuracy
     acc = tf.reduce_sum(tf.gather(tf.reshape(labels, [-1]), flattened_ind)) / tf.to_float(tf.shape(labels))[0] * 100
     return tf.identity(acc, name='accuarcy')
 
+def save_state(saver, sess, starting_pos, idx, batch_size, loss_sum, accuracy_sum, cnt, epoch_number):
+    saver.save(sess, os.path.join(os.getcwd(), "models/VQA_model/main_model"), global_step=starting_pos + idx * batch_size)
+    np.savetxt('models/VQA_model/statistics.out', (loss_sum, accuracy_sum, cnt, epoch_number))
+
 def validation_acc_loss(sess,
                         batch_size,
                         images_place_holder,
@@ -54,6 +59,9 @@ def validation_acc_loss(sess,
                         phase_ph,
                         accuracy,
                         loss):
+
+    print("VALIDATION:: STARTING...")
+
     temp_acc = 0.0
     temp_loss = 0.0
     
@@ -80,11 +88,13 @@ def validation_acc_loss(sess,
     temp_acc /= itr
     temp_loss /= itr
     
+    print("VALIDATION:: ENDING...")
+
     return temp_loss, temp_acc 
 
 def train_model(number_of_iteration,
                 check_point_iteration,
-                validation_point_iteration,
+                validation_per_epoch,
                 learning_rate, 
                 batch_size,
                 from_scratch=False,
@@ -106,16 +116,25 @@ def train_model(number_of_iteration,
         sess.run(init)
 
         starting_pos = 0
+        loss_sum, accuracy_sum, cnt = 0.0, 0.0, 0.0
+        epoch_number = 1
     else:
         questions_place_holder, images_place_holder, labels_place_holder, questions_length_place_holder, logits, loss, accuarcy, phase_ph, starting_pos, train_step = _get_saved_graph_tensors(sess)
+        loss_sum, accuracy_sum, cnt, epoch_number = np.loadtxt('models/VQA_model/statistics.out')
 
-    saver = tf.train.Saver(max_to_keep=5)
+    saver = tf.train.Saver(max_to_keep=1)
 
     train_data_fetcher = DataFetcher('validation', batch_size=batch_size, start_itr=starting_pos)
-    
+
     for i in range(1, number_of_iteration + 1):
 
         images_batch, questions_batch, questions_length, labels_batch, end_of_epoch = train_data_fetcher.get_next_batch()
+
+        if end_of_epoch:
+            # print epoch shit here
+            epoch_number = epoch_number + 1
+            loss_sum, accuracy_sum, cnt = 0.0, 0.0, 0.0
+            save_state(saver, sess, starting_pos, i, batch_size, loss_sum, accuracy_sum, cnt, epoch_number)
 
         feed_dict = {questions_place_holder: questions_batch,
                      images_place_holder: images_batch, 
@@ -125,7 +144,11 @@ def train_model(number_of_iteration,
         
         _, training_loss, training_acc = sess.run([train_step, loss, accuarcy], feed_dict=feed_dict)
         
-        if validate and i % validation_point_iteration == 0:
+        cnt += batch_size
+        loss_sum += loss
+        accuracy_sum += accuarcy
+
+        if validate and end_of_epoch:
             validation_loss, validation_acc = validation_acc_loss(sess,
                                                                   batch_size,
                                                                   images_place_holder,
@@ -133,11 +156,14 @@ def train_model(number_of_iteration,
                                                                   labels_place_holder,
                                                                   questions_length_place_holder,
                                                                   phase_ph, accuarcy, loss)
-        
-        if i % check_point_iteration == 0:
-            saver.save(sess, os.path.join(os.getcwd(), "models/VQA_model/main_model"), global_step=starting_pos + i * batch_size)
+            # print validation shit here
+
+        if i % check_point_iteration and not end_of_epoch == 0:
+            save_state(saver, sess, starting_pos, i, batch_size, loss_sum, accuracy_sum, cnt, epoch_number)
         
         if trace:
+            # trace is only for training log
+            # add some statistics like epoch number
             print('TRAINING:: Iteration[{}]: (Accuracy: {}%, Loss: {})'.format(i, training_acc, training_loss))
         
     sess.close()
