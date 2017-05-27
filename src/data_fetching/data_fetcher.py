@@ -2,10 +2,9 @@ import numpy as np
 from data_fetching.img_fetcher import get_imgs_batch
 from data_fetching.question_fetcher import get_questions_batch, get_questions_len
 from data_fetching.annotation_fetcher import get_annotations_batch
-from data_fetching.multithreading import FuncThread
 from data_fetching.data_path import get_path
 from sentence_preprocess import question_batch_to_vecs
-#from feature_extraction import img_features
+from feature_extraction import img_features
 
 
 class DataFetcher:
@@ -16,10 +15,12 @@ class DataFetcher:
         self.batch_size = batch_size
         self.itr = start_itr
 
-        self.available_datasets = ['abstract_scenes_v1', 'abstract_scenes_v1']
+        self.available_datasets = ['abstract_scenes_v1', 'balanced_binary_abstract_scenes']
 
         self.data_lengthes = [self.get_dataset_len(dataset_name) for dataset_name in self.available_datasets]
         self.sum_data_len = sum(self.data_lengthes)
+
+        img_features.initialize_graph(batch_size)
 
 
     #  Returns the name of the current dataset
@@ -64,8 +65,7 @@ class DataFetcher:
     def images_to_features(self, images_dict):
 
         image_ids, batch = list(images_dict.keys()), list(images_dict.values())
-        #features = img_features.extract(batch)
-        features = np.random.rand(len(batch), 2048)
+        features = img_features.extract(batch)
 
         for i in range(len(features)):                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
             images_dict[image_ids[i]] = features[i]

@@ -63,9 +63,7 @@ def validation_acc_loss(sess,
 
     while True:
 
-        images_batch, questions_batch, questions_length, labels_batch, end_of_data = val_data_fetcher.get_next_batch() 
-        if(end_of_data):
-            break
+        images_batch, questions_batch, questions_length, labels_batch, end_of_epoch = val_data_fetcher.get_next_batch() 
         
         feed_dict = {questions_place_holder: questions_batch, images_place_holder: images_batch, labels_place_holder: labels_batch, questions_length_place_holder:questions_length, phase_ph: 0}
         l, a = sess.run([loss, accuracy], feed_dict=feed_dict)
@@ -75,6 +73,9 @@ def validation_acc_loss(sess,
         temp_loss += l
 
         print("VALIDATION:: Iteration[{}]".format(itr))
+
+        if(end_of_epoch):
+            break
     
     temp_acc /= itr
     temp_loss /= itr
@@ -114,7 +115,7 @@ def train_model(number_of_iteration,
     
     for i in range(1, number_of_iteration + 1):
 
-        images_batch, questions_batch, questions_length, labels_batch, _ = train_data_fetcher.get_next_batch()
+        images_batch, questions_batch, questions_length, labels_batch, end_of_epoch = train_data_fetcher.get_next_batch()
 
         feed_dict = {questions_place_holder: questions_batch,
                      images_place_holder: images_batch, 
@@ -126,6 +127,7 @@ def train_model(number_of_iteration,
         
         if validate and i % validation_point_iteration == 0:
             validation_loss, validation_acc = validation_acc_loss(sess,
+                                                                  batch_size,
                                                                   images_place_holder,
                                                                   questions_place_holder,
                                                                   labels_place_holder,
@@ -133,7 +135,7 @@ def train_model(number_of_iteration,
                                                                   phase_ph, accuarcy, loss)
         
         if i % check_point_iteration == 0:
-            saver.save(sess, os.path.join(os.getcwd(), "models/VQA_model/main_model"), global_step=starting_pos + (i + 1) * batch_size * 3)
+            saver.save(sess, os.path.join(os.getcwd(), "models/VQA_model/main_model"), global_step=starting_pos + i * batch_size)
         
         if trace:
             print('TRAINING:: Iteration[{}]: (Accuracy: {}%, Loss: {})'.format(i, training_acc, training_loss))
