@@ -55,8 +55,11 @@ def preprocess(sentence):
 
 def sentence2vecs(sentence):
     sentence_words = preprocess(sentence)
-    words_count = sentence_words.size
-    while (sentence_words.size < MAX_QUESTION_LENGTH):
+    words_count = len(sentence_words)
+    if words_count > MAX_QUESTION_LENGTH:
+        sentence_words = sentence_words[:30]
+
+    while len(sentence_words) < MAX_QUESTION_LENGTH:
         #question padding
         sentence_words.append("#")
 
