@@ -15,9 +15,11 @@ LOADED_JSON_FILES = {}
 # Loads the json file and saves it in the global variable as a dictionary of
 # Key = question_id and
 # Value = list of answers
-def _load_json_file(file_name):
+def _load_json_file(file_name, mc_answer_phase):
 
     a_dict = {}
+    multiple_choice_answers = {}
+
     with open(file_name) as data_file:
         data = json.load(data_file)
         annotations = data["annotations"]
@@ -26,8 +28,13 @@ def _load_json_file(file_name):
         a_dict[elem["question_id"]] = [(answer["answer"],
             answer["answer_confidence"] if "answer_confidence" in answer else "yes")
              for answer in elem["answers"]]
-             
-    return a_dict
+
+        multiple_choice_answers[elem["question_id"]] = elem["multiple_choice_answer"]
+
+    # if mc_answer_phase:
+    #      return multiple_choice_answers
+    # else:
+    return a_dict, multiple_choice_answers
 
 
 # Returns the global dictionary for annotations based on the type of the data set
@@ -48,54 +55,32 @@ def _get_annotations(file_name):
 # 10 is the number of answers for each question
 def get_annotations_batch(question_ids, file_name):
 
-    all_annotation = _get_annotations(file_name)
+    #get_annotations()[1] will return a dictionary of question id and multiple choice answer for this question
+    all_annotation = _get_annotations(file_name)[1]
     batch = {}
 
     for q_id in question_ids:
-            batch[q_id] = expand_answer(all_annotation[q_id])
+        batch[q_id] = expand_answer(all_annotation[q_id])
 
     return batch
 
 
-# Takes a list of answers_pair where first item is the answer string and second item is the answer confidence
-# Returns a vector of length = TOP_ANSWERS_COUNT
-def expand_answer(answers_pair):
+# Takes the multiple_choice_answer return one hot encoded vector of length TOP_ANSWERS_COUNT
+def expand_answer(multiple_choice_answer):
 
+    #TOP_ANSWERS_MAP is a map of the answer word and its index in TOP_ANSWERS_LIST
     global TOP_ANSWERS_MAP, TOP_ANSWERS_LIST
 
     if TOP_ANSWERS_MAP is None:
         TOP_ANSWERS_MAP, TOP_ANSWERS_LIST = get_top_answers_map()
 
-    answers_dict = {}
     expanded_answer = [0] * TOP_ANSWERS_COUNT
-    total_sum = 0
 
-    for elem in answers_pair:
-
-        ans = elem[0]
-        conf = elem[1]
-
-        if ans in TOP_ANSWERS_MAP:
-            if conf == "yes":
-                if ans in answers_dict:
-                    answers_dict[ans] += 2
-                else:
-                    answers_dict[ans] = 2
-                total_sum += 2
-
-            if conf == "maybe":
-                if ans in answers_dict:
-                    answers_dict[ans] += 1
-                else:
-                    answers_dict[ans] = 1
-                total_sum += 1
-
-    for answer in answers_dict:
-        answers_dict[answer] = answers_dict[answer] / total_sum
-
-    for key, val in answers_dict.items():
-        expanded_answer[TOP_ANSWERS_MAP[key]] = val
-
+    #if the multiple_choice_answer of the question is not in the top answers, then the 
+    #return expanded answer will contains all zeroes
+    if multiple_choice_answer in TOP_ANSWERS_MAP:
+        expanded_answer[TOP_ANSWERS_MAP[multiple_choice_answer]] = 1
+        
     return expanded_answer
 
 
@@ -119,34 +104,21 @@ def get_top_answers_map():
 
     top_answers_dict = {}
 
-    annotations_abstract_v1 = _get_annotations(get_path('training', 'abstract_scenes_v1', 'annotations'))
-    annotations_balanced_binary_abstract = _get_annotations(get_path('training', 'balanced_binary_abstract_scenes', 'annotations'))
-    annotations_balanced_real = _get_annotations(get_path('training', 'balanced_real_images', 'annotations'))
+    #get_annotations()[1] will return a dictionary of question id and multiple choice answer for this question
+    annotations_abstract_v1 = _get_annotations(get_path('training', 'abstract_scenes_v1', 'annotations'))[1]
+    annotations_balanced_binary_abstract = _get_annotations(get_path('training', 'balanced_binary_abstract_scenes', 'annotations'))[1]
+    annotations_balanced_real = _get_annotations(get_path('training', 'balanced_real_images', 'annotations'))[1]
 
     all_annotations = [annotations_abstract_v1, annotations_balanced_binary_abstract, annotations_balanced_real]
 
     for annot_dict in all_annotations:
-        for key, answers in annot_dict.items():
+        for key, multiple_choice_answer in annot_dict.items():
 
-            for answer in answers:
-
-                ans = answer[0]
-                conf = answer[1]
-
-                if conf == "yes":
-                    if ans in top_answers_dict:
-                        top_answers_dict[ans] += 2
-                    else:
-                        top_answers_dict[ans] = 2
-                elif conf == "maybe":
-                    if ans in top_answers_dict:
-                        top_answers_dict[ans] += 1
-                    else:
-                        top_answers_dict[ans] = 1
-                else:
-                    if not (ans in top_answers_dict):
-                        top_answers_dict[ans] = 0
-                   
+            if multiple_choice_answer in top_answers_dict:
+                top_answers_dict[multiple_choice_answer] += 1
+            else:
+                top_answers_dict[multiple_choice_answer] = 1
+               
     # return 2 columns array sorted on the second column, the first column is the answer and the second column is the count
     sorted_top_answers = sorted(top_answers_dict.items(), key=operator.itemgetter(1), reverse=True) 
     # return the first column of the sorted_top_answers, that are the words
