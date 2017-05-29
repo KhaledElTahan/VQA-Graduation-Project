@@ -5,6 +5,7 @@ from nltk.stem.wordnet import WordNetLemmatizer
 from re import sub
 from abbreviations import expand
 from word_preprocess import word2vec
+import numpy as np
 
 MAX_QUESTION_LENGTH = 30
 
@@ -56,22 +57,30 @@ def preprocess(sentence):
 def sentence2vecs(sentence):
     sentence_words = preprocess(sentence)
     words_count = len(sentence_words)
-    if words_count > MAX_QUESTION_LENGTH:
-        sentence_words = sentence_words[:30]
+    # if words_count > MAX_QUESTION_LENGTH:
+    #     sentence_words = sentence_words[:30]
+
+    # while len(sentence_words) < MAX_QUESTION_LENGTH:
+    #     #question padding
 
     while len(sentence_words) < MAX_QUESTION_LENGTH:
-        #question padding
+        # question padding
         sentence_words.append("#")
 
     return [word2vec(w) for w in sentence_words], words_count
 
 def question_batch_to_vecs(questions):
-    #returns array of #question * #words in each question * 300
+    # returns array of #question * #words in each question * 300
     questions_vecs = []
     questions_length = []
+
     for q in questions:
         question_vec, question_length = sentence2vecs(q)
         questions_vecs.append(question_vec)
         questions_length.append(question_length)
+
+    if len(questions) == 0:
+        return np.array(questions_vecs), np.array(questions_length)
+
+    return np.stack(questions_vecs, axis=0), np.array(questions_length)
     
-    return np.stack(questions_vecs, axis = 0), np.array(questions_length)
