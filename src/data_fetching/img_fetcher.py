@@ -4,6 +4,7 @@ from data_fetching.multithreading import FuncThread
 import math
 import numpy as np
 import glob
+import pickle
 
 IMG_SHAPE = (224, 224)  # Used image shape for resizing
 IMG_PER_THREAD = 8  # Number of images loaded per thread determined by trial and error according to the batch size
@@ -30,6 +31,18 @@ def _get_img_by_id(img_dir, img_id):
 
     return np.asarray(img) * 255.0
 
+def _get_img_feature_by_id(img_dir, img_id):
+    file_name = format(img_id, '012d') + ".bin"
+    files = glob.glob(img_dir + file_name)
+
+    if len(files) == 0:
+        raise ValueError("No image feature found with name = " + file_name)
+
+    with open (files[0], 'rb') as fp:
+        features = pickle.load(fp)
+
+    return features
+
 
 # Returns a numpy array containing images and a boolean which is true if we reached the end of the data set
 def _get_imgs_batch(img_dir, image_ids):
@@ -42,6 +55,15 @@ def _get_imgs_batch(img_dir, image_ids):
 
     return batch
 
+def _get_imgs_feature_batch(img_dir, image_ids):
+
+    batch = {}
+
+    for id in image_ids:
+        img = _get_img_feature_by_id(img_dir, id)
+        batch[id] = img
+
+    return batch
 
 # Overloaded for data set type and multi-threading
 def get_imgs_batch(image_ids, img_dir):
@@ -62,3 +84,8 @@ def get_imgs_batch(image_ids, img_dir):
     #     batch = {**batch, **img_threads[i].get_ret_val()}
 
     return _get_imgs_batch(img_dir, image_ids)
+
+# Return features of an image
+def get_imgs_features_batch(image_ids, img_dir):
+
+    return _get_imgs_feature_batch(img_dir, image_ids)

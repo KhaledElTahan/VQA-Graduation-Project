@@ -1,10 +1,12 @@
 import numpy as np
-from data_fetching.img_fetcher import get_imgs_batch
+from data_fetching.img_fetcher import get_imgs_batch,get_imgs_features_batch
 from data_fetching.question_fetcher import get_questions_batch, get_questions_len
 from data_fetching.annotation_fetcher import get_annotations_batch
 from data_fetching.multithreading import FuncThread
 from data_fetching.data_path import get_path
 from sentence_preprocess import question_batch_to_vecs
+import pickle
+import os
 #from feature_extraction import img_features
 
 
@@ -20,7 +22,7 @@ class DataFetcher:
 
         self.data_lengthes = [self.get_dataset_len(dataset_name) for dataset_name in self.available_datasets]
         self.sum_data_len = sum(self.data_lengthes)
-
+        self.first_load = False
 
     #  Returns the name of the current dataset
     def get_current_dataset(self):
@@ -60,12 +62,15 @@ class DataFetcher:
     def get_annotations_path(self):
         return get_path(self.evaluation_type, self.get_current_dataset(), 'annotations')
 
+    def get_img_features_path(self):
+        return get_path(self.evaluation_type, self.get_current_dataset(), 'images_features')
+
     # Extract features from images and return a dictionary { "image_id": features }
     def images_to_features(self, images_dict):
 
         image_ids, batch = list(images_dict.keys()), list(images_dict.values())
-        #features = img_features.extract(batch)
-        features = np.random.rand(len(batch), 2048)
+        features = img_features.extract(batch)
+        #features = np.random.rand(len(batch), 2048)
 
         for i in range(len(features)):                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
             images_dict[image_ids[i]] = features[i]
@@ -92,6 +97,7 @@ class DataFetcher:
 
         return questions_vecs, questions_length
 
+    # Load images and use CNN to extract features
     def load_images(self, questions_all):
 
         # Extract image ids
@@ -104,6 +110,18 @@ class DataFetcher:
         images_dict = self.images_to_features(images_dict)
 
         return images_dict
+
+    # Load images features
+    def load_images_features(self, questions_all):
+
+        # Extract image ids
+        image_ids = list(set([elem['image_id'] for elem in questions_all]))
+
+        # Load images
+        images_dict = get_imgs_features_batch(image_ids, self.get_img_features_path())
+
+        return images_dict
+
 
     def load_annotations(self, questions_all):
 
@@ -118,6 +136,7 @@ class DataFetcher:
     # Updates state of the loader to prepare for the next batch
     def update_state(self, actual_batch_size):
 
+        self.first_load = True
         self.itr += actual_batch_size
 
     def get_dataset_len(self, dataset_name):
@@ -140,7 +159,9 @@ class DataFetcher:
         # Link questions with images and annotations using ids
         #annotations, images = self.merge_by_id(questions_all, annotations_dict_thread.get_ret_val(), images_dict_thread.get_ret_val())
 
-        annotations, images = self.merge_by_id(questions_all, self.load_annotations(questions_all), self.load_images(questions_all))
+        annotations, images = self.merge_by_id(questions_all, self.load_annotations(questions_all), 
+            self.load_images_features(questions_all))
+
         questions_vecs, questions_length = self.questions_to_features(questions_all)
 
         # Updates state of the loader to prepare for the next batch
@@ -154,8 +175,7 @@ class DataFetcher:
 
         actual_batch_size = len(images)
 
-        # read all datasets and starting from the begining
-        eof = (self.itr % self.sum_data_len) == 0
+        eof = self.end_of_data()
 
         if actual_batch_size < self.batch_size:
 
@@ -169,3 +189,34 @@ class DataFetcher:
         return images, questions_vecs, questions_length, annotations, eof
 
 
+    def end_of_data(self):
+        return (self.itr % self.sum_data_len) == 0 and self.first_load
+
+    # Extract features from images and save them to be used later
+    def extract_dataset_images_features(self):
+
+        while(not self.end_of_data()):
+            
+            questions_batch = get_questions_batch(self.get_dataset_iterator(),
+             self.batch_size, self.get_questions_path())
+
+            images_dict = self.load_images(questions_batch)
+
+            self.write_images_features(images_dict)
+
+            self.update_state(len(questions_batch))
+
+            print(len(questions_batch))
+            print(self.end_of_data())
+
+    # Write images features to features subfolder
+    def write_images_features(self, images_dict):
+
+        directory = self.get_img_features_path()
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+
+        for image_id, feature in images_dict.items():
+
+            with open(os.path.join(directory, format(image_id, '012d') + '.bin'), 'wb') as fp:
+                pickle.dump(feature, fp)

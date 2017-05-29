@@ -42,7 +42,9 @@ def get_path(evaluation_type, data_set_type, data_type):
             elif data_type == 'questions':
                 ret_path = os.path.join(ret_path, 'OpenEnded_abstract_v002_val2015_questions.json')
             elif data_type == 'images':
-                ret_path = os.path.join(ret_path, 'scene_img_abstract_v002_val2015\\')
+                ret_path = os.path.join(ret_path, 'scene_img_abstract_v002_val2015/')
+            elif data_type == 'images_features':
+            	ret_path = os.path.join(ret_path, 'scene_img_abstract_v002_val2015_features/')
 
     elif evaluation_type == 'validation':
 
@@ -74,6 +76,8 @@ def get_path(evaluation_type, data_set_type, data_type):
                 ret_path = os.path.join(ret_path, 'OpenEnded_abstract_v002_val2015_questions.json')
             elif data_type == 'images':    
                 ret_path = os.path.join(ret_path, 'scene_img_abstract_v002_val2015/')
+            elif data_type == 'images_features':
+            	ret_path = os.path.join(ret_path, 'scene_img_abstract_v002_val2015_features/')
 
     elif evaluation_type == 'testing':
 
