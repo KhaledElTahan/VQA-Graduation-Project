@@ -32,5 +32,9 @@ def initialize_graph(max_batch_size):
         Typically called once, Before extracting any image features
         However, Calling it is optional and NOT required
     """
+    if not img_features_mxnet._IS_CREATED:
+        img_features_mxnet._create_model(max_batch_size)
+        max_batch_size = max_batch_size - 1
+
     for i in range(max_batch_size, 0, -1):
         img_features_mxnet.change_batch_size(i)

@@ -2,12 +2,11 @@ import numpy as np
 from data_fetching.img_fetcher import get_imgs_batch,get_imgs_features_batch
 from data_fetching.question_fetcher import get_questions_batch, get_questions_len
 from data_fetching.annotation_fetcher import get_annotations_batch
-from data_fetching.multithreading import FuncThread
 from data_fetching.data_path import get_path
 from sentence_preprocess import question_batch_to_vecs
 import pickle
 import os
-#from feature_extraction import img_features
+from feature_extraction import img_features
 
 
 class DataFetcher:
@@ -18,11 +17,13 @@ class DataFetcher:
         self.batch_size = batch_size
         self.itr = start_itr
 
-        self.available_datasets = ['abstract_scenes_v1', 'abstract_scenes_v1']
+        self.available_datasets = ['abstract_scenes_v1', 'balanced_binary_abstract_scenes']
 
         self.data_lengthes = [self.get_dataset_len(dataset_name) for dataset_name in self.available_datasets]
         self.sum_data_len = sum(self.data_lengthes)
         self.first_load = False
+
+        img_features.initialize_graph(batch_size)
 
     #  Returns the name of the current dataset
     def get_current_dataset(self):

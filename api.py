@@ -16,7 +16,6 @@ def run_tests(system_args):
     pass
 
 def train(batch_size, from_scratch_flag, validate_flag, trace_flag, validation_itr, checkpoint_itr, number_of_iteration):
-
     learning_rate = 1e-4
     
     train_model(number_of_iteration, checkpoint_itr, validation_itr, learning_rate, batch_size, from_scratch_flag, 
@@ -38,7 +37,6 @@ def validate_system(batch_size, data_path, model_name, validation_size):
 
 def test_model(batch_size, data_path, model_name, test_size):
     pass
-
 
 def prepare_data():
   data_loader = DataFetcher('validation', batch_size=96)
