@@ -38,4 +38,8 @@ def validate_system(batch_size, data_path, model_name, validation_size):
 def test_model(batch_size, data_path, model_name, test_size):
     pass
 
-train(5, True, True, True, 5, 10, 100)
+def prepare_data():
+  data_loader = DataFetcher('validation', batch_size=96)
+  data_loader.extract_dataset_images_features()
+
+train(32, True, True, True, 5, 10, 100)
