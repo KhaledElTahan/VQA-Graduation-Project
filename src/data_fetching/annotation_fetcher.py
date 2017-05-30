@@ -15,7 +15,7 @@ LOADED_JSON_FILES = {}
 # Loads the json file and saves it in the global variable as a dictionary of
 # Key = question_id and
 # Value = list of answers
-def _load_json_file(file_name, mc_answer_phase):
+def _load_json_file(file_name):
 
     a_dict = {}
     multiple_choice_answers = {}
