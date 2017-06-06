@@ -1,6 +1,7 @@
 import numpy as np
+import random
 from data_fetching.img_fetcher import get_imgs_batch,get_imgs_features_batch
-from data_fetching.question_fetcher import get_questions_batch, get_questions_len
+from data_fetching.question_fetcher import get_questions_batch, get_questions_len, get_questions
 from data_fetching.annotation_fetcher import get_annotations_batch
 from data_fetching.data_path import get_path
 from sentence_preprocess import question_batch_to_vecs
@@ -11,17 +12,19 @@ from feature_extraction import img_features
 
 class DataFetcher:
 
-    def __init__(self, evaluation_type, batch_size=32, start_itr=0):
+    def __init__(self, evaluation_type, batch_size=32, start_itr=0, preprocessing=False):
 
         self.evaluation_type = evaluation_type
         self.batch_size = batch_size
         self.itr = start_itr
 
-        self.available_datasets = ['abstract_scenes_v1', 'balanced_binary_abstract_scenes']
+        self.available_datasets = ['abstract_scenes_v1']
 
-        self.data_lengthes = [self.get_dataset_len(dataset_name) for dataset_name in self.available_datasets]
-        self.sum_data_len = sum(self.data_lengthes)
-        self.first_load = False
+        if not preprocessing:
+
+            self.data_lengthes = [self.get_dataset_len(dataset_name) for dataset_name in self.available_datasets]
+            self.sum_data_len = sum(self.data_lengthes)
+            self.first_load = False
 
         img_features.initialize_graph(batch_size)
 
@@ -56,12 +59,30 @@ class DataFetcher:
         return get_path(self.evaluation_type, self.get_current_dataset(), 'images')
 
     # Return path to questions of the current dataset
-    def get_questions_path(self):
-        return get_path(self.evaluation_type, self.get_current_dataset(), 'questions')
+    def get_questions_path(self, dataset_name=None):
+
+        if dataset_name == None:
+            dataset_name = self.get_current_dataset()
+
+        return get_path(self.evaluation_type, dataset_name, 'questions')
+
+    # Return path to processed questions
+    def get_questions_processed_path(self, dataset_name=None):
+
+        if dataset_name == None:
+            dataset_name = self.get_current_dataset()
+
+        path = get_path(self.evaluation_type, dataset_name, 'questions_processed')
+
+        return path
 
     # Return path to annotations of the current dataset
-    def get_annotations_path(self):
-        return get_path(self.evaluation_type, self.get_current_dataset(), 'annotations')
+    def get_annotations_path(self, dataset_name=None):
+
+        if dataset_name == None:
+            dataset_name = self.get_current_dataset()
+
+        return get_path(self.evaluation_type, dataset_name, 'annotations')
 
     def get_img_features_path(self):
         return get_path(self.evaluation_type, self.get_current_dataset(), 'images_features')
@@ -124,13 +145,16 @@ class DataFetcher:
         return images_dict
 
 
-    def load_annotations(self, questions_all):
+    def load_annotations(self, questions_all, path=None):
+
+        if path == None:
+            path = self.get_annotations_path()
 
         # Extract question ids
         question_ids = [elem['question_id'] for elem in questions_all]
 
         # Load annotations
-        annotations_dict = get_annotations_batch(question_ids, self.get_annotations_path())
+        annotations_dict = get_annotations_batch(question_ids, path)
 
         return annotations_dict
 
@@ -141,12 +165,12 @@ class DataFetcher:
         self.itr += actual_batch_size
 
     def get_dataset_len(self, dataset_name):
-        path = get_path(self.evaluation_type, dataset_name, 'questions')
+        path = self.get_questions_processed_path(dataset_name)
         return get_questions_len(path)
 
     def _get_next_batch(self, batch_size):
 
-        questions_all = get_questions_batch(self.get_dataset_iterator(), batch_size, self.get_questions_path())
+        questions_all = get_questions_batch(self.get_dataset_iterator(), batch_size, self.get_questions_processed_path())
 
         # Extract features from questions
         #question_features_thread = FuncThread(self.questions_to_features, questions_all)
@@ -207,8 +231,7 @@ class DataFetcher:
 
             self.update_state(len(questions_batch))
 
-            print(len(questions_batch))
-            print(self.end_of_data())
+            print("PREPROCESSING:",self.itr,"/",self.sum_data_len, "%.3f" % self.itr/self.sum_data_len)
 
     # Write images features to features subfolder
     def write_images_features(self, images_dict):
@@ -221,3 +244,28 @@ class DataFetcher:
 
             with open(os.path.join(directory, format(image_id, '012d') + '.bin'), 'wb') as fp:
                 pickle.dump(feature, fp)
+
+    # Removes questions with annotations not in the Top Answers
+    def preprocess_questions(self):
+
+        for dataset in self.available_datasets:
+
+            questions_all = get_questions(self.get_questions_path(dataset))
+            annotations_all = self.load_annotations(questions_all, path=self.get_annotations_path(dataset))
+
+            valid_questions = []
+
+            print("PREPROCESSING: ", self.get_questions_path(dataset))
+
+            for q in questions_all:
+
+                if sum(annotations_all[q["question_id"]]) != 0:
+
+                    valid_questions.append(q)
+
+            random.shuffle(valid_questions)
+
+            print("Removed {} questions".format(len(questions_all) - len(valid_questions)))
+
+            with open(self.get_questions_processed_path(dataset), 'wb') as fp:
+                    pickle.dump(valid_questions, fp)

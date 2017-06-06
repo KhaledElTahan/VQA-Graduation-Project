@@ -11,7 +11,7 @@ IMG_PER_THREAD = 8  # Number of images loaded per thread determined by trial and
 
 # Returns resized numpy array of the image with this id
 def _get_img_by_id(img_dir, img_id):
-    suffix = "*" + format(img_id, '012d') + ".png"
+    suffix = "*" + format(img_id, '012d') + ".*"
     files = glob.glob(img_dir + suffix)
 
     if len(files) == 0:

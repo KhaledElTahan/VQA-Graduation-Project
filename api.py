@@ -39,7 +39,11 @@ def test_model(batch_size, data_path, model_name, test_size):
     pass
 
 def prepare_data():
-  data_loader = DataFetcher('validation', batch_size=96)
-  data_loader.extract_dataset_images_features()
+    train_loader = DataFetcher('training', preprocessing=True)
+    train_loader.preprocess_questions()
 
-train(32, True, True, True, 5, 10, 100)
+    val_loader = DataFetcher('validation', preprocessing=True)
+    val_loader.preprocess_questions() 
+
+#prepare_data()
+train(32, True, True, True, 100, 100, 100)
