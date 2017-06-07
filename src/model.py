@@ -48,11 +48,11 @@ def _accuracy(predictions, labels):  # Top 1000 accuracy
 
 def save_state(saver, sess, starting_pos, idx, batch_size, loss_sum, accuracy_sum, cnt_iteration, cnt_examples, epoch_number):
 
-    directory = os.path.join(os.getcwd(), "models/VQA_model")
+    directory = os.path.join(os.getcwd(), "models/VQA_model/")
     if not os.path.exists(directory):
         os.makedirs(directory)
 
-    saver.save(sess, directory, global_step=starting_pos + idx * batch_size)
+    saver.save(sess, os.path.join(os.getcwd(), "models/VQA_model/main_model"), global_step=starting_pos + idx * batch_size)
     np.savetxt('models/VQA_model/statistics.out', (loss_sum, accuracy_sum, cnt_iteration, cnt_examples, epoch_number))
 
 def validation_acc_loss(sess,
@@ -173,15 +173,6 @@ def train_model(number_of_iteration,
             print('TRAINING:: Iteration[{}]: (Accuracy: {}%, Loss: {})'.format(i, training_acc, training_loss))
         
     sess.close()
-
-def print_validation_stat():
-    pass
-
-def print_training_stat():
-    pass
-
-def print_training_log():
-    pass
 
 def _load_model(sess):
     meta_graph_path, data_path, last_index = _get_last_main_model_path()
