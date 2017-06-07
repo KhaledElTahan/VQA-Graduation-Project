@@ -47,7 +47,12 @@ def _accuracy(predictions, labels):  # Top 1000 accuracy
     return tf.identity(acc, name='accuarcy')
 
 def save_state(saver, sess, starting_pos, idx, batch_size, loss_sum, accuracy_sum, cnt, epoch_number):
-    saver.save(sess, os.path.join(os.getcwd(), "models/VQA_model/main_model"), global_step=starting_pos + idx * batch_size)
+
+    directory = os.path.join(os.getcwd(), "models/VQA_model/main_model")
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+    saver.save(sess, directory, global_step=starting_pos + idx * batch_size)
     np.savetxt('models/VQA_model/statistics.out', (loss_sum, accuracy_sum, cnt, epoch_number))
 
 def validation_acc_loss(sess,
@@ -124,7 +129,7 @@ def train_model(number_of_iteration,
 
     saver = tf.train.Saver(max_to_keep=1)
 
-    train_data_fetcher = DataFetcher('validation', batch_size=batch_size, start_itr=starting_pos)
+    train_data_fetcher = DataFetcher('training', batch_size=batch_size, start_itr=starting_pos)
 
     for i in range(1, number_of_iteration + 1):
 
@@ -158,7 +163,7 @@ def train_model(number_of_iteration,
                                                                   phase_ph, accuarcy, loss)
             # print validation shit here
 
-        if i % check_point_iteration and not end_of_epoch == 0:
+        if i % check_point_iteration == 0 and not end_of_epoch:
             save_state(saver, sess, starting_pos, i, batch_size, loss_sum, accuracy_sum, cnt, epoch_number)
         
         if trace:

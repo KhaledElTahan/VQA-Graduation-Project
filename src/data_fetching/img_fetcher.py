@@ -36,7 +36,7 @@ def _get_img_feature_by_id(img_dir, img_id):
     files = glob.glob(img_dir + file_name)
 
     if len(files) == 0:
-        raise ValueError("No image feature found with name = " + file_name)
+        raise ValueError("No image feature found with name = " + file_name, "in directory:", img_dir)
 
     with open (files[0], 'rb') as fp:
         features = pickle.load(fp)

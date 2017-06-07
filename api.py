@@ -46,4 +46,4 @@ def prepare_data():
     val_loader.preprocess_questions() 
 
 #prepare_data()
-train(32, True, True, True, 100, 100, 100)
+train(100, True, True, True, 1000, 1000, 1000)

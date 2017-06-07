@@ -7,7 +7,7 @@ from data_fetching.data_path import get_path
 from sentence_preprocess import question_batch_to_vecs
 import pickle
 import os
-from feature_extraction import img_features
+#from feature_extraction import img_features
 
 
 class DataFetcher:
@@ -18,7 +18,7 @@ class DataFetcher:
         self.batch_size = batch_size
         self.itr = start_itr
 
-        self.available_datasets = ['abstract_scenes_v1']
+        self.available_datasets = ['balanced_real_images', 'balanced_binary_abstract_scenes', 'abstract_scenes_v1']
 
         if not preprocessing:
 
@@ -26,7 +26,7 @@ class DataFetcher:
             self.sum_data_len = sum(self.data_lengthes)
             self.first_load = False
 
-        img_features.initialize_graph(batch_size)
+        #img_features.initialize_graph(batch_size)
 
     #  Returns the name of the current dataset
     def get_current_dataset(self):
@@ -34,11 +34,14 @@ class DataFetcher:
         itr = self.itr % self.sum_data_len
 
         idx = 0
-        for i in range(len(self.data_lengthes)):
+        for length in self.data_lengthes:
 
-            if itr >= self.data_lengthes[i]:
-                itr -= self.data_lengthes[i]
+            if itr >= length:
+                itr -= length
                 idx = (idx + 1) % len(self.data_lengthes)
+
+            else:
+                break
 
         return self.available_datasets[idx]
 
@@ -47,10 +50,13 @@ class DataFetcher:
 
         itr = self.itr % self.sum_data_len
 
-        for i in range(len(self.data_lengthes)):
+        for length in self.data_lengthes:
 
-            if itr >= self.data_lengthes[i]:
-                itr -= self.data_lengthes[i]
+            if itr >= length:
+                itr -= length
+
+            else:
+                break
 
         return itr
 
@@ -91,8 +97,10 @@ class DataFetcher:
     def images_to_features(self, images_dict):
 
         image_ids, batch = list(images_dict.keys()), list(images_dict.values())
-        features = img_features.extract(batch)
-        #features = np.random.rand(len(batch), 2048)
+        #features = img_features.extract(batch)
+        features = np.random.rand(len(batch), 2048)
+
+        print("WARNING: using random features !")
 
         for i in range(len(features)):                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
             images_dict[image_ids[i]] = features[i]
