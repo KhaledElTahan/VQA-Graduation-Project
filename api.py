@@ -45,5 +45,7 @@ def prepare_data():
     val_loader = DataFetcher('validation', preprocessing=True)
     val_loader.preprocess_questions() 
 
-#prepare_data()
-train(100, True, True, True, 1000, 1000, 1000)
+# prepare_data()
+# train(1, True, True, True, 1000, 10, 1000)
+
+train(100, True, True, True, 1000, 10, 1000)

@@ -26,8 +26,6 @@ class DataFetcher:
             self.sum_data_len = sum(self.data_lengthes)
             self.first_load = False
 
-        #img_features.initialize_graph(batch_size)
-
     #  Returns the name of the current dataset
     def get_current_dataset(self):
 
