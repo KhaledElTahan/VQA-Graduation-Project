@@ -1,10 +1,21 @@
 import gensim
+import pickle
+from src.data_fetching.data_path import get_word2vec_model_path, get_glove_path
+import os
 
 _WORD2VEC_MODEL = None
 
 def _load_model():
     global _WORD2VEC_MODEL
-    _WORD2VEC_MODEL = gensim.models.KeyedVectors.load_word2vec_format('/home/khaled/projects/VQA/models/word2vector/GoogleNews-vectors-negative300.bin', binary=True) 
+
+    if os.path.exists(get_word2vec_model_path()):
+        with open (get_word2vec_model_path(), 'rb') as fp:
+            _WORD2VEC_MODEL = pickle.load(fp)
+    else:
+        _WORD2VEC_MODEL = gensim.models.Word2Vec.load_word2vec_format(get_glove_path(), binary=False)
+
+        with open (get_word2vec_model_path(), 'wb') as fp:
+            pickle.dump(_WORD2VEC_MODEL, fp)
 
 def _unload_model():
     global _WORD2VEC_MODEL
@@ -15,8 +26,6 @@ def word2vec(word):
     if _WORD2VEC_MODEL is None:
         _load_model()
 
-    if word == "#":
-        return [0] * 300
 
     if word in _WORD2VEC_MODEL:
         return _WORD2VEC_MODEL[word]

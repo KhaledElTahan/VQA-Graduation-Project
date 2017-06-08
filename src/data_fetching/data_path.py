@@ -122,3 +122,9 @@ def get_path(evaluation_type, data_set_type, data_type):
 
 def get_top_answers_path():
     return os.path.join(data_path, "top_answers.bin")
+
+def get_word2vec_model_path():
+    return os.path.join(data_path, "word2vec_model.bin")
+
+def get_glove_path():
+    return os.path.join(data_path, "glove.840B.300d.txt")

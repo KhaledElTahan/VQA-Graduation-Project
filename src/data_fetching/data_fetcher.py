@@ -18,7 +18,7 @@ class DataFetcher:
         self.batch_size = batch_size
         self.itr = start_itr
 
-        self.available_datasets = ['balanced_real_images', 'balanced_binary_abstract_scenes', 'abstract_scenes_v1']
+        self.available_datasets = ['abstract_scenes_v1']
 
         if not preprocessing:
 
@@ -88,8 +88,12 @@ class DataFetcher:
 
         return get_path(self.evaluation_type, dataset_name, 'annotations')
 
-    def get_img_features_path(self):
-        return get_path(self.evaluation_type, self.get_current_dataset(), 'images_features')
+    def get_img_features_path(self, dataset_name=None):
+
+        if dataset_name == None:
+            dataset_name = self.get_current_dataset()
+
+        return get_path(self.evaluation_type, dataset_name, 'images_features')
 
     # Extract features from images and return a dictionary { "image_id": features }
     def images_to_features(self, images_dict):
@@ -237,7 +241,7 @@ class DataFetcher:
 
             self.update_state(len(questions_batch))
 
-            print("PREPROCESSING:",self.itr,"/",self.sum_data_len, "%.3f" % self.itr/self.sum_data_len)
+            print("PREPROCESSING:",self.itr,"/",self.sum_data_len, "%.3f %" % (self.itr/self.sum_data_len))
 
     # Write images features to features subfolder
     def write_images_features(self, images_dict):

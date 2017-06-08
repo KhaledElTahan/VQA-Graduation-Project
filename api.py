@@ -43,9 +43,12 @@ def prepare_data():
     train_loader.preprocess_questions()
 
     val_loader = DataFetcher('validation', preprocessing=True)
-    val_loader.preprocess_questions() 
+    val_loader.preprocess_questions()
 
-# prepare_data()
+def extract_features():
+    loader = DataFetcher('training')
+    loader.extract_dataset_images_features()
+
 # train(1, True, True, True, 1000, 10, 1000)
 
 train(100, True, True, True, 1000, 10, 1000)

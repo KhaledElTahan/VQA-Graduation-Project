@@ -43,7 +43,6 @@ def _get_img_feature_by_id(img_dir, img_id):
 
     return features
 
-
 # Returns a numpy array containing images and a boolean which is true if we reached the end of the data set
 def _get_imgs_batch(img_dir, image_ids):
 
