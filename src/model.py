@@ -146,7 +146,7 @@ def train_model(number_of_iteration,
                                                                   labels_place_holder,
                                                                   questions_length_place_holder,
                                                                   phase_ph, accuarcy, loss)
-            _print_statistics(training_statistics_file, "Validation", epoch_number, validation_acc, validation_loss)
+            _print_statistics(validation_statistics_file, "Validation", epoch_number, validation_acc, validation_loss)
 
         if end_of_epoch: 
             accuracy_avg = accuracy_sum / cnt_iteration
