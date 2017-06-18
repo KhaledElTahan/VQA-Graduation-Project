@@ -123,9 +123,12 @@ def train_model(number_of_iteration,
         starting_pos = 0
         loss_sum, accuracy_sum, cnt_iteration, cnt_examples = 0.0, 0.0, 0.0, 0.0
         epoch_number = 1
+
+        training_log_file, training_statistics_file, validation_statistics_file = _create_printing_files(discard_if_exists=True)
     else:
         questions_place_holder, images_place_holder, labels_place_holder, questions_length_place_holder, logits, loss, accuarcy, phase_ph, starting_pos, train_step = _get_saved_graph_tensors(sess)
         loss_sum, accuracy_sum, cnt_iteration, cnt_examples, epoch_number = np.loadtxt('models/VQA_model/statistics.out')
+        training_log_file, training_statistics_file, validation_statistics_file = _create_printing_files(discard_if_exists=False)
 
     saver = tf.train.Saver(max_to_keep=1)
 
@@ -135,8 +138,20 @@ def train_model(number_of_iteration,
 
         images_batch, questions_batch, questions_length, labels_batch, end_of_epoch = train_data_fetcher.get_next_batch()
 
-        if end_of_epoch: # what if saved then crashed immediately? then validation is lost # BUG
-            # print epoch shit here
+        if validate and end_of_epoch:
+            validation_loss, validation_acc = validation_acc_loss(sess,
+                                                                  batch_size,
+                                                                  images_place_holder,
+                                                                  questions_place_holder,
+                                                                  labels_place_holder,
+                                                                  questions_length_place_holder,
+                                                                  phase_ph, accuarcy, loss)
+            _print_statistics(training_statistics_file, "Validation", epoch_number, validation_acc, validation_loss)
+
+        if end_of_epoch: 
+            accuracy_avg = accuracy_sum / cnt_iteration
+            loss_avg = loss_sum / cnt_examples
+            _print_statistics(training_statistics_file, "Training", epoch_number, accuracy_avg, loss_avg)
             epoch_number = epoch_number + 1
             loss_sum, accuracy_sum, cnt_iteration, cnt_examples = 0.0, 0.0, 0.0, 0.0
             save_state(saver, sess, starting_pos, i, batch_size, loss_sum, accuracy_sum, cnt_iteration, cnt_examples, epoch_number)
@@ -154,25 +169,45 @@ def train_model(number_of_iteration,
         loss_sum += training_loss
         accuracy_sum += training_acc
 
-        if validate and end_of_epoch:
-            validation_loss, validation_acc = validation_acc_loss(sess,
-                                                                  batch_size,
-                                                                  images_place_holder,
-                                                                  questions_place_holder,
-                                                                  labels_place_holder,
-                                                                  questions_length_place_holder,
-                                                                  phase_ph, accuarcy, loss)
-            # print validation shit here
-
         if i % check_point_iteration == 0 and not end_of_epoch:
             save_state(saver, sess, starting_pos, i, batch_size, loss_sum, accuracy_sum, cnt_iteration, cnt_examples, epoch_number)
         
-        if trace:
-            # trace is only for training log
-            # add some statistics like epoch number
-            print('TRAINING:: Iteration[{}]: (Accuracy: {}%, Loss: {})'.format(i, training_acc, training_loss))
+        if trace:  # trace is only for training log
+            _print_training_log(training_log_file, i, epoch_number, training_acc, training_loss)
         
     sess.close()
+
+def _print_training_log(file, iteration, epoch, training_acc, training_loss):
+    to_print = "TRAINING::Epoch[{}]-Iteration[{}]: (Accuracy: {}%, Loss: {})".format(epoch, iteration, training_acc, training_loss)
+    print(to_print)
+    file.write(to_print)
+    file.write('\n')
+    file.flush()
+
+def _print_statistics(file, evaluation_type, epoch, accuracy_avg, loss_avg):
+    to_print = evaluation_type + "::SUMMARY::Epoch[{}] (Avg-Accuracy: {}%, Avg-Loss: {})".format(epoch, accuracy_avg, loss_avg)
+    file.write(to_print)
+    file.write('\n')
+    file.flush()
+
+def _create_printing_files(discard_if_exists=False):
+    mode = 'a'
+    if discard_if_exists:
+        mode = 'w'
+
+    directory = os.path.join(os.getcwd(), "models/VQA_model/")
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+    directory = os.path.join(os.getcwd(), "models/VQA_model/log/")
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+    training_log_file = open('models/VQA_model/log/training_log.txt', mode)
+    training_statistics_file = open('models/VQA_model/log/training_statistics.txt', mode)
+    validation_statistics_file = open('models/VQA_model/log/validation_statistics_file.txt', mode)
+
+    return training_log_file, training_statistics_file, validation_statistics_file
 
 def _load_model(sess):
     meta_graph_path, data_path, last_index = _get_last_main_model_path()
