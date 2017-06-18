@@ -1,6 +1,6 @@
 import gensim
 import pickle
-from src.data_fetching.data_path import get_word2vec_model_path, get_glove_path
+from data_fetching.data_path import get_word2vec_model_path, get_glove_path
 import os
 
 _WORD2VEC_MODEL = None

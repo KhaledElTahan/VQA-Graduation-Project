@@ -35,7 +35,7 @@ def abstract_model(questions_ph, img_features_ph, questions_length_ph, phase_ph,
     
     return layers.fully_connected(fused_features_second, 1000)  # logits
 
-def _accuracy(predictions, labels):  # Top 1000 accuracy
+def _accuracy(predictions, labels, k, name):  
     
     _, top_indices = tf.nn.top_k(predictions, k=5, sorted=True, name=None)
 
@@ -44,16 +44,16 @@ def _accuracy(predictions, labels):  # Top 1000 accuracy
     flattened_ind = tf.range(0, tf.multiply(x, y)) // y * tf.shape(labels)[1] + tf.reshape(top_indices, [-1])
 
     acc = tf.reduce_sum(tf.gather(tf.reshape(labels, [-1]), flattened_ind)) / tf.to_float(tf.shape(labels))[0] * 100
-    return tf.identity(acc, name='accuarcy')
+    return tf.identity(acc, name)
 
-def save_state(saver, sess, starting_pos, idx, batch_size, loss_sum, accuracy_sum, cnt_iteration, cnt_examples, epoch_number):
+def save_state(saver, sess, starting_pos, idx, batch_size, loss_sum, accuracy_1_sum, accuracy_5_sum, cnt_iteration, cnt_examples, epoch_number):
 
     directory = os.path.join(os.getcwd(), "models/VQA_model/")
     if not os.path.exists(directory):
         os.makedirs(directory)
 
     saver.save(sess, os.path.join(os.getcwd(), "models/VQA_model/main_model"), global_step=starting_pos + idx * batch_size)
-    np.savetxt('models/VQA_model/statistics.out', (loss_sum, accuracy_sum, cnt_iteration, cnt_examples, epoch_number))
+    np.savetxt('models/VQA_model/statistics.out', (loss_sum, accuracy_1_sum, accuracy_5_sum, cnt_iteration, cnt_examples, epoch_number))
 
 def validation_acc_loss(sess,
                         batch_size,
@@ -62,12 +62,14 @@ def validation_acc_loss(sess,
                         labels_place_holder,
                         questions_length_place_holder,
                         phase_ph,
-                        accuracy,
+                        top1_accuarcy,
+                        top5_accuarcy,
                         loss):
 
     print("VALIDATION:: STARTING...")
 
-    temp_acc = 0.0
+    temp_acc_1 = 0.0
+    temp_acc_5 = 0.0
     temp_loss = 0.0
     
     itr = 0
@@ -79,10 +81,11 @@ def validation_acc_loss(sess,
         images_batch, questions_batch, questions_length, labels_batch, end_of_epoch = val_data_fetcher.get_next_batch() 
         
         feed_dict = {questions_place_holder: questions_batch, images_place_holder: images_batch, labels_place_holder: labels_batch, questions_length_place_holder:questions_length, phase_ph: 0}
-        l, a = sess.run([loss, accuracy], feed_dict=feed_dict)
+        l, a1, a5 = sess.run([loss, top1_accuarcy, top5_accuarcy], feed_dict=feed_dict)
         
         itr += 1
-        temp_acc += a
+        temp_acc_1 += a1
+        temp_acc_5 += a5
         temp_loss += l
 
         print("VALIDATION:: Iteration[{}]".format(itr))
@@ -90,12 +93,13 @@ def validation_acc_loss(sess,
         if(end_of_epoch):
             break
     
-    temp_acc /= itr
-    temp_loss /= itr
+    temp_acc_1 /= itr
+    temp_acc_5 /= itr
+    temp_loss /= (itr * batch_size)
     
     print("VALIDATION:: ENDING...")
 
-    return temp_loss, temp_acc 
+    return temp_loss, temp_acc_1, temp_acc_5
 
 def train_model(number_of_iteration,
                 check_point_iteration,
@@ -109,7 +113,7 @@ def train_model(number_of_iteration,
     sess = tf.Session()
     
     if from_scratch:
-        questions_place_holder, images_place_holder, labels_place_holder, questions_length_place_holder, logits, loss, accuarcy, phase_ph = _train_from_scratch(sess) 
+        questions_place_holder, images_place_holder, labels_place_holder, questions_length_place_holder, logits, loss, top1_accuarcy, top5_accuarcy, phase_ph = _train_from_scratch(sess) 
         optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
 
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
@@ -121,13 +125,13 @@ def train_model(number_of_iteration,
         sess.run(init)
 
         starting_pos = 0
-        loss_sum, accuracy_sum, cnt_iteration, cnt_examples = 0.0, 0.0, 0.0, 0.0
+        loss_sum, accuracy_1_sum, accuracy_5_sum, cnt_iteration, cnt_examples = 0.0, 0.0, 0.0, 0.0, 0.0
         epoch_number = 1
 
         training_log_file, training_statistics_file, validation_statistics_file = _create_printing_files(discard_if_exists=True)
     else:
-        questions_place_holder, images_place_holder, labels_place_holder, questions_length_place_holder, logits, loss, accuarcy, phase_ph, starting_pos, train_step = _get_saved_graph_tensors(sess)
-        loss_sum, accuracy_sum, cnt_iteration, cnt_examples, epoch_number = np.loadtxt('models/VQA_model/statistics.out')
+        questions_place_holder, images_place_holder, labels_place_holder, questions_length_place_holder, logits, loss, top1_accuarcy, top5_accuarcy, phase_ph, starting_pos, train_step = _get_saved_graph_tensors(sess)
+        loss_sum, accuracy_1_sum, accuracy_5_sum, cnt_iteration, cnt_examples, epoch_number = np.loadtxt('models/VQA_model/statistics.out')
         training_log_file, training_statistics_file, validation_statistics_file = _create_printing_files(discard_if_exists=False)
 
     saver = tf.train.Saver(max_to_keep=1)
@@ -145,16 +149,17 @@ def train_model(number_of_iteration,
                                                                   questions_place_holder,
                                                                   labels_place_holder,
                                                                   questions_length_place_holder,
-                                                                  phase_ph, accuarcy, loss)
+                                                                  phase_ph, top1_accuarcy, top5_accuarcy, loss)
             _print_statistics(validation_statistics_file, "Validation", epoch_number, validation_acc, validation_loss)
 
         if end_of_epoch: 
-            accuracy_avg = accuracy_sum / cnt_iteration
+            accuracy_1_avg = accuracy_1_sum / cnt_iteration
+            accuracy_5_avg = accuracy_5_sum / cnt_iteration
             loss_avg = loss_sum / cnt_examples
-            _print_statistics(training_statistics_file, "Training", epoch_number, accuracy_avg, loss_avg)
+            _print_statistics(training_statistics_file, "Training", epoch_number, accuracy_1_avg, accuracy_5_avg, loss_avg)
             epoch_number = epoch_number + 1
-            loss_sum, accuracy_sum, cnt_iteration, cnt_examples = 0.0, 0.0, 0.0, 0.0
-            save_state(saver, sess, starting_pos, i, batch_size, loss_sum, accuracy_sum, cnt_iteration, cnt_examples, epoch_number)
+            loss_sum, accuracy_1_sum, accuracy_5_sum, cnt_iteration, cnt_examples = 0.0, 0.0, 0.0, 0.0, 0.0
+            save_state(saver, sess, starting_pos, i, batch_size, loss_sum, accuracy_1_sum, accuracy_5_sum, cnt_iteration, cnt_examples, epoch_number)
 
         feed_dict = {questions_place_holder: questions_batch,
                      images_place_holder: images_batch, 
@@ -162,30 +167,31 @@ def train_model(number_of_iteration,
                      questions_length_place_holder: questions_length, 
                      phase_ph: 1}
         
-        _, training_loss, training_acc = sess.run([train_step, loss, accuarcy], feed_dict=feed_dict)
+        _, training_loss, training_acc_1, training_acc_5 = sess.run([train_step, loss, top1_accuarcy, top5_accuarcy], feed_dict=feed_dict)
         
         cnt_iteration += 1
         cnt_examples += batch_size
         loss_sum += training_loss
-        accuracy_sum += training_acc
+        accuracy_1_sum += training_acc_1
+        accuracy_5_sum += training_acc_5
 
         if i % check_point_iteration == 0 and not end_of_epoch:
-            save_state(saver, sess, starting_pos, i, batch_size, loss_sum, accuracy_sum, cnt_iteration, cnt_examples, epoch_number)
+            save_state(saver, sess, starting_pos, i, batch_size, loss_sum, accuracy_1_sum, accuracy_5_sum, cnt_iteration, cnt_examples, epoch_number)
         
         if trace:  # trace is only for training log
-            _print_training_log(training_log_file, i, epoch_number, training_acc, training_loss)
+            _print_training_log(training_log_file, i, epoch_number, training_acc_1, training_acc_5, training_loss)
         
     sess.close()
 
-def _print_training_log(file, iteration, epoch, training_acc, training_loss):
-    to_print = "TRAINING::Epoch[{}]-Iteration[{}]: (Accuracy: {}%, Loss: {})".format(epoch, iteration, training_acc, training_loss)
+def _print_training_log(file, iteration, epoch, training_acc_1, training_acc_5, training_loss):
+    to_print = "TRAINING::Epoch[{}]-Iteration[{}]: (Top1-Accuracy: {}%, Top5-Accuracy: {}%, Loss: {})".format(epoch, iteration, training_acc_1, training_acc_5, training_loss)
     print(to_print)
     file.write(to_print)
     file.write('\n')
     file.flush()
 
-def _print_statistics(file, evaluation_type, epoch, accuracy_avg, loss_avg):
-    to_print = evaluation_type + "::SUMMARY::Epoch[{}] (Avg-Accuracy: {}%, Avg-Loss: {})".format(epoch, accuracy_avg, loss_avg)
+def _print_statistics(file, evaluation_type, epoch, accuracy_1_avg, accuracy_5_avg, loss_avg):
+    to_print = evaluation_type + "::SUMMARY::Epoch[{}] (Avg-Top1-Accuracy: {}%, Avg-Top5-Accuracy: {}%, Avg-Loss: {})".format(epoch, accuracy_1_avg, accuracy_5_avg, loss_avg)
     file.write(to_print)
     file.write('\n')
     file.flush()
@@ -205,7 +211,7 @@ def _create_printing_files(discard_if_exists=False):
 
     training_log_file = open('models/VQA_model/log/training_log.txt', mode)
     training_statistics_file = open('models/VQA_model/log/training_statistics.txt', mode)
-    validation_statistics_file = open('models/VQA_model/log/validation_statistics_file.txt', mode)
+    validation_statistics_file = open('models/VQA_model/log/validation_statistics.txt', mode)
 
     return training_log_file, training_statistics_file, validation_statistics_file
 
@@ -251,9 +257,10 @@ def _train_from_scratch(sess):
 
     logits = tf.identity(abstract_model(questions_place_holder, images_place_holder, questions_length_place_holder, bn_phase), name="logits")
     loss = tf.reduce_sum(tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=labels_place_holder), name='loss')
-    accuarcy = _accuracy(tf.nn.softmax(logits), labels_place_holder)
+    top1_accuarcy = _accuracy(tf.nn.softmax(logits), labels_place_holder, k=1, name='top1_accuracy')
+    top5_accuarcy = _accuracy(tf.nn.softmax(logits), labels_place_holder, k=5, name='top5_accuracy')
 
-    return questions_place_holder, images_place_holder, labels_place_holder, questions_length_place_holder, logits, loss, accuarcy, bn_phase
+    return questions_place_holder, images_place_holder, labels_place_holder, questions_length_place_holder, logits, loss, top1_accuarcy, top5_accuarcy, bn_phase
 
 def _get_saved_graph_tensors(sess):
     
@@ -270,11 +277,12 @@ def _get_saved_graph_tensors(sess):
 
     logits = _MAIN_MODEL_GRAPH.get_tensor_by_name("logits:0")
     loss = _MAIN_MODEL_GRAPH.get_tensor_by_name("loss:0")
-    accuarcy = _MAIN_MODEL_GRAPH.get_tensor_by_name("accuarcy:0")
+    top1_accuarcy = _MAIN_MODEL_GRAPH.get_tensor_by_name("top1_accuarcy:0")
+    top5_accuarcy = _MAIN_MODEL_GRAPH.get_tensor_by_name("top5_accuarcy:0")
 
     train_step = _MAIN_MODEL_GRAPH.get_operation_by_name("train_step")
 
-    return questions_place_holder, images_place_holder, labels_place_holder, questions_length_place_holder, logits, loss, accuarcy, bn_phase, last_index, train_step
+    return questions_place_holder, images_place_holder, labels_place_holder, questions_length_place_holder, logits, loss, top1_accuarcy, top5_accuarcy, bn_phase, last_index, train_step
 
 def evaluate(image_features, question_features, questions_length):
 

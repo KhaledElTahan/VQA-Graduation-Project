@@ -5,7 +5,7 @@ import tensorflow as tf
 
 def test_fn(predictions, labels):
     with tf.Session():
-        return int(_accuracy(predictions, labels).eval())
+        return int(_accuracy(predictions, labels, k=5, name="Test").eval())
 
 def main(starting_counter):
     test_args, test_exps = [], []
