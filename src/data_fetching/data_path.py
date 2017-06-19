@@ -42,7 +42,7 @@ def get_path(evaluation_type, data_set_type, data_type):
             elif data_type == 'images':
                 ret_path = os.path.join(ret_path, 'scene_img_abstract_v002_binary_train2017/')
             elif data_type == 'images_features':
-            	ret_path = os.path.join(ret_path, 'scene_img_abstract_v002_binary_train2017_features/')
+            	ret_path = os.path.join(ret_path, 'scene_img_abstract_v002_train2017_features/')
 
         elif data_set_type == 'abstract_scenes_v1':  # NEED CHANGE TO TRAINING
             if data_type == 'annotations':

@@ -37,7 +37,7 @@ def abstract_model(questions_ph, img_features_ph, questions_length_ph, phase_ph,
 
 def _accuracy(predictions, labels, k, name):  
     
-    _, top_indices = tf.nn.top_k(predictions, k=5, sorted=True, name=None)
+    _, top_indices = tf.nn.top_k(predictions, k, sorted=True, name=None)
 
     x = tf.to_int32(tf.shape(top_indices))[0]
     y = tf.to_int32(tf.shape(top_indices))[1]
@@ -138,19 +138,21 @@ def train_model(number_of_iteration,
 
     train_data_fetcher = DataFetcher('training', batch_size=batch_size, start_itr=starting_pos)
 
-    for i in range(1, number_of_iteration + 1):
+    #for i in range(1, number_of_iteration + 1):
+    i = 1
+    while True:
 
         images_batch, questions_batch, questions_length, labels_batch, end_of_epoch = train_data_fetcher.get_next_batch()
 
         if validate and end_of_epoch:
-            validation_loss, validation_acc = validation_acc_loss(sess,
+            validation_loss, validation_acc_1, validation_acc_5 = validation_acc_loss(sess,
                                                                   batch_size,
                                                                   images_place_holder,
                                                                   questions_place_holder,
                                                                   labels_place_holder,
                                                                   questions_length_place_holder,
                                                                   phase_ph, top1_accuarcy, top5_accuarcy, loss)
-            _print_statistics(validation_statistics_file, "Validation", epoch_number, validation_acc, validation_loss)
+            _print_statistics(validation_statistics_file, "Validation", epoch_number, validation_acc_1, validation_acc_5, validation_loss)
 
         if end_of_epoch: 
             accuracy_1_avg = accuracy_1_sum / cnt_iteration
@@ -180,6 +182,8 @@ def train_model(number_of_iteration,
         
         if trace:  # trace is only for training log
             _print_training_log(training_log_file, i, epoch_number, training_acc_1, training_acc_5, training_loss)
+
+        i = i+1
         
     sess.close()
 

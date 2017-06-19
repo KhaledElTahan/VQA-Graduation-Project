@@ -51,4 +51,4 @@ def extract_features():
 
 # train(1, True, True, True, 1000, 10, 1000)
 
-train(100, True, True, True, 1000, 10, 1000)
+train(512, True, True, True, 100, 100, 100000)
