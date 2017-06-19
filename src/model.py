@@ -146,12 +146,12 @@ def train_model(number_of_iteration,
 
         if validate and end_of_epoch:
             validation_loss, validation_acc_1, validation_acc_5 = validation_acc_loss(sess,
-                                                                  batch_size,
-                                                                  images_place_holder,
-                                                                  questions_place_holder,
-                                                                  labels_place_holder,
-                                                                  questions_length_place_holder,
-                                                                  phase_ph, top1_accuarcy, top5_accuarcy, loss)
+                                                                                      batch_size,
+                                                                                      images_place_holder,
+                                                                                      questions_place_holder,
+                                                                                      labels_place_holder,
+                                                                                      questions_length_place_holder,
+                                                                                      phase_ph, top1_accuarcy, top5_accuarcy, loss)
             _print_statistics(validation_statistics_file, "Validation", epoch_number, validation_acc_1, validation_acc_5, validation_loss)
 
         if end_of_epoch: 
@@ -183,7 +183,7 @@ def train_model(number_of_iteration,
         if trace:  # trace is only for training log
             _print_training_log(training_log_file, i, epoch_number, training_acc_1, training_acc_5, training_loss)
 
-        i = i+1
+        i = i + 1
         
     sess.close()
 
@@ -281,8 +281,8 @@ def _get_saved_graph_tensors(sess):
 
     logits = _MAIN_MODEL_GRAPH.get_tensor_by_name("logits:0")
     loss = _MAIN_MODEL_GRAPH.get_tensor_by_name("loss:0")
-    top1_accuarcy = _MAIN_MODEL_GRAPH.get_tensor_by_name("top1_accuarcy:0")
-    top5_accuarcy = _MAIN_MODEL_GRAPH.get_tensor_by_name("top5_accuarcy:0")
+    top1_accuarcy = _MAIN_MODEL_GRAPH.get_tensor_by_name("top1_accuracy:0")
+    top5_accuarcy = _MAIN_MODEL_GRAPH.get_tensor_by_name("top5_accuracy:0")
 
     train_step = _MAIN_MODEL_GRAPH.get_operation_by_name("train_step")
 
