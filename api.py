@@ -49,6 +49,6 @@ def extract_features():
     loader = DataFetcher('training')
     loader.extract_dataset_images_features()
 
-# train(1, True, True, True, 1000, 10, 1000)
-
-train(512, True, True, True, 100, 100, 100000)
+# train(512, True, True, True, 100, 100, 100000)
+# 
+extract_features()

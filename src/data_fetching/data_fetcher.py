@@ -1,13 +1,13 @@
 import numpy as np
 import random
-from data_fetching.img_fetcher import get_imgs_batch,get_imgs_features_batch
+from data_fetching.img_fetcher import get_imgs_batch, get_imgs_features_batch
 from data_fetching.question_fetcher import get_questions_batch, get_questions_len, get_questions
 from data_fetching.annotation_fetcher import get_annotations_batch
 from data_fetching.data_path import get_path
 from sentence_preprocess import question_batch_to_vecs
 import pickle
 import os
-#from feature_extraction import img_features
+from feature_extraction import img_features
 
 
 class DataFetcher:
@@ -65,7 +65,7 @@ class DataFetcher:
     # Return path to questions of the current dataset
     def get_questions_path(self, dataset_name=None):
 
-        if dataset_name == None:
+        if dataset_name is None:
             dataset_name = self.get_current_dataset()
 
         return get_path(self.evaluation_type, dataset_name, 'questions')
@@ -73,7 +73,7 @@ class DataFetcher:
     # Return path to processed questions
     def get_questions_processed_path(self, dataset_name=None):
 
-        if dataset_name == None:
+        if dataset_name is None:
             dataset_name = self.get_current_dataset()
 
         path = get_path(self.evaluation_type, dataset_name, 'questions_processed')
@@ -83,14 +83,14 @@ class DataFetcher:
     # Return path to annotations of the current dataset
     def get_annotations_path(self, dataset_name=None):
 
-        if dataset_name == None:
+        if dataset_name is None:
             dataset_name = self.get_current_dataset()
 
         return get_path(self.evaluation_type, dataset_name, 'annotations')
 
     def get_img_features_path(self, dataset_name=None):
 
-        if dataset_name == None:
+        if dataset_name is None:
             dataset_name = self.get_current_dataset()
 
         return get_path(self.evaluation_type, dataset_name, 'images_features')
@@ -99,8 +99,8 @@ class DataFetcher:
     def images_to_features(self, images_dict):
 
         image_ids, batch = list(images_dict.keys()), list(images_dict.values())
-        #features = img_features.extract(batch)
-        features = np.random.rand(len(batch), 2048)
+        features = img_features.extract(batch, model="Tensorflow")
+        # features = np.random.rand(len(batch), 2048)
 
         print("WARNING: using random features !")
 
@@ -233,7 +233,7 @@ class DataFetcher:
         while(not self.end_of_data()):
             
             questions_batch = get_questions_batch(self.get_dataset_iterator(),
-             self.batch_size, self.get_questions_path())
+                                                  self.batch_size, self.get_questions_path())
 
             images_dict = self.load_images(questions_batch)
 
@@ -241,7 +241,7 @@ class DataFetcher:
 
             self.update_state(len(questions_batch))
 
-            print("PREPROCESSING:",self.itr,"/",self.sum_data_len, "%.3f %" % (self.itr/self.sum_data_len))
+            print("PREPROCESSING:", self.itr, "/", self.sum_data_len, "%.3f %" % (self.itr / self.sum_data_len))
 
     # Write images features to features subfolder
     def write_images_features(self, images_dict):
