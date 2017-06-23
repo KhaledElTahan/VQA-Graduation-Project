@@ -11,8 +11,11 @@ def get_path(model_name, file_type=""):
         if file_type == "graph":
             return path + "/ResNet-L152.meta"
         elif file_type == "parameters":
-            return "./" + path + "/ResNet-L152.ckpt"
+            return path + "/ResNet-L152.ckpt"
     elif model_name == "resnet152-11k-mxnet":
         path = os.path.join(models_path, "resnet152-11k-mxnet")
         return path + "/resnet-152"
+    elif model_name == "resnet200-1k-mxnet":
+        path = os.path.join(models_path, "resnet200-1k-mxnet")
+        return path + "/resnet-200"
         
