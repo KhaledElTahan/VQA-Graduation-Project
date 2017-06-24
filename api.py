@@ -11,6 +11,7 @@ from src.data_fetching.data_fetcher import DataFetcher
 from src.feature_extraction.img_features import extract
 from src.data_fetching.annotation_fetcher import get_top_answers
 from src.sentence_preprocess import question_batch_to_vecs
+from utility import get_image
 
 def run_tests(system_args):
     # tester.run_tests(system_args)
@@ -20,6 +21,9 @@ def train(batch_size, from_scratch_flag, validate_flag, trace_flag, checkpoint_i
     learning_rate = 1e-4
     
     train_model(checkpoint_itr, learning_rate, batch_size, from_scratch_flag, validate_flag, trace_flag)
+
+def evaluate_example_url(image_url, question):
+    return evaluate_example(get_image(image_url))
 
 def evaluate_example(image, question):
     image_features = extract(image)
@@ -46,5 +50,5 @@ def prepare_data():
     val_loader.preprocess_questions()
 
 def extract_features(batch_size, data_type='training'):
-    loader = DataFetcher(data_type)
+    loader = DataFetcher(data_type, batch_size)
     loader.extract_dataset_images_features()

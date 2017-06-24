@@ -1,9 +1,13 @@
 """
 The manager allows easy terminal operation on the API
 typically called: python manager.py operation [parameters]
+parameters could be optional -denoted by []- or not
+
 Examples:
     python manager.py train 64
     python manager.py finetune
+    python manager.py evaluate test.jpg How many persons are there?
+
 Allowed operations:
     train                       [batch_size]
     finetune                    [batch_size]
@@ -11,6 +15,8 @@ Allowed operations:
     preprocess_questions
     extract_training_features   [batch_size]
     extract_validation_features [batch_size]
+    evaluate                     Image_Path Question
+        Image_Path: Must not contain spaces
 """
 
 import api
@@ -44,6 +50,11 @@ def main(args):
         print("Extract Validation Images Features ...")
         print("Batch size is ", batch_size)
         api.extract_features(batch_size, "validation")
+    elif args[0] == "evaluate":
+        print("Evaluating Example ...")
+        print("Image Path: ", args[1])
+        print("Question words: ", args[1:])
+        api.evaluate_example_url(args[1], args[1:])
 
 
 if __name__ == "__main__":
