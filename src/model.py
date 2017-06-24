@@ -55,6 +55,21 @@ def save_state(saver, sess, starting_pos, idx, batch_size, loss_sum, accuracy_1_
     saver.save(sess, os.path.join(os.getcwd(), "models/VQA_model/main_model"), global_step=starting_pos + idx * batch_size)
     np.savetxt('models/VQA_model/statistics.out', (loss_sum, accuracy_1_sum, accuracy_5_sum, cnt_iteration, cnt_examples, epoch_number))
 
+def validation_independent(batch_size):
+    sess = tf.Session()
+    questions_place_holder, images_place_holder, labels_place_holder, questions_length_place_holder, logits, loss, top1_accuarcy, top5_accuarcy, phase_ph, starting_pos, train_step = _get_saved_graph_tensors(sess)
+
+    validation_loss, validation_acc_1, validation_acc_5 = validation_acc_loss(sess,
+                                                                              batch_size,
+                                                                              images_place_holder,
+                                                                              questions_place_holder,
+                                                                              labels_place_holder,
+                                                                              questions_length_place_holder,
+                                                                              phase_ph, top1_accuarcy, top5_accuarcy, loss)
+    
+    to_print = "Validation::SUMMARY (Avg-Top1-Accuracy: {}%, Avg-Top5-Accuracy: {}%, Avg-Loss: {})".format(validation_acc_1, validation_acc_5, validation_loss)
+    print(to_print)
+
 def validation_acc_loss(sess,
                         batch_size,
                         images_place_holder,

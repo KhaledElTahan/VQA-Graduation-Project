@@ -6,6 +6,7 @@ sys.path.insert(0, 'src/feature_extraction')
 
 from src.model import evaluate
 from src.model import train_model
+from src.model import validation_independent
 from src.data_fetching.data_fetcher import DataFetcher
 from src.feature_extraction.img_features import extract
 from src.data_fetching.annotation_fetcher import get_top_answers
@@ -31,8 +32,8 @@ def evaluate_example(image, question):
 def terminate_evaluation():
     pass
 
-def validate_system(batch_size, data_path, model_name, validation_size):
-    pass
+def validate_system(batch_size):
+    validation_independent(batch_size)
 
 def test_model(batch_size, data_path, model_name, test_size):
     pass
