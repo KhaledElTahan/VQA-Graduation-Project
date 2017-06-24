@@ -241,7 +241,7 @@ class DataFetcher:
 
             self.update_state(len(questions_batch))
 
-            print("PREPROCESSING:", self.itr, "/", self.sum_data_len, "%.3f %" % (self.itr / self.sum_data_len))
+            print("PREPROCESSING:", self.itr, "/", self.sum_data_len, " ", (self.itr / self.sum_data_len))
 
     # Write images features to features subfolder
     def write_images_features(self, images_dict):
