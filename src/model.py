@@ -101,9 +101,7 @@ def validation_acc_loss(sess,
 
     return temp_loss, temp_acc_1, temp_acc_5
 
-def train_model(number_of_iteration,
-                check_point_iteration,
-                validation_per_epoch,
+def train_model(check_point_iteration,
                 learning_rate, 
                 batch_size,
                 from_scratch=False,

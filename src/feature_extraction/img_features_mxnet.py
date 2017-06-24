@@ -12,9 +12,9 @@ _BATCH_SIZE = -1
 def _create_model(batch_size):
     global _IS_CREATED, _RES_NET_MODEL, _ARG_PARAMS, _AUX_PARAMS, _BATCH_SIZE
 
-    _SYM, _ARG_PARAMS, _AUX_PARAMS = mx.model.load_checkpoint(get_path('resnet152-11k-mxnet'), 0)
+    _SYM, _ARG_PARAMS, _AUX_PARAMS = mx.model.load_checkpoint(get_path('resnet200-1k-mxnet'), 0)
     features_layer = _SYM.get_internals()['flatten0_output']
-    _RES_NET_MODEL = mx.mod.Module(symbol=features_layer, label_names=None, context=mx.cpu())
+    _RES_NET_MODEL = mx.mod.Module(symbol=features_layer, label_names=None, context=mx.gpu())
     _BATCH_SIZE = batch_size
     _bind_model()
 

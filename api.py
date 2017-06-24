@@ -15,11 +15,10 @@ def run_tests(system_args):
     # tester.run_tests(system_args)
     pass
 
-def train(batch_size, from_scratch_flag, validate_flag, trace_flag, validation_itr, checkpoint_itr, number_of_iteration):
+def train(batch_size, from_scratch_flag, validate_flag, trace_flag, checkpoint_itr):
     learning_rate = 1e-4
     
-    train_model(number_of_iteration, checkpoint_itr, validation_itr, learning_rate, batch_size, from_scratch_flag, 
-                validate_flag, trace_flag)
+    train_model(checkpoint_itr, learning_rate, batch_size, from_scratch_flag, validate_flag, trace_flag)
 
 def evaluate_example(image, question):
     image_features = extract(image)
@@ -45,10 +44,10 @@ def prepare_data():
     val_loader = DataFetcher('validation', preprocessing=True)
     val_loader.preprocess_questions()
 
-def extract_features():
-    loader = DataFetcher('training')
+def extract_features(batch_size, data_type='training'):
+    loader = DataFetcher(data_type)
     loader.extract_dataset_images_features()
 
 # train(512, True, True, True, 100, 100, 100000)
 # 
-extract_features()
+extract_features(32)
