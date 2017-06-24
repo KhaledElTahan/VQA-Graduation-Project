@@ -99,10 +99,7 @@ class DataFetcher:
     def images_to_features(self, images_dict):
 
         image_ids, batch = list(images_dict.keys()), list(images_dict.values())
-        features = img_features.extract(batch, model="Tensorflow")
-        # features = np.random.rand(len(batch), 2048)
-
-        print("WARNING: using random features !")
+        features = img_features.extract(batch)
 
         for i in range(len(features)):                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
             images_dict[image_ids[i]] = features[i]

@@ -26,7 +26,10 @@ def _get_img_by_id(img_dir, img_id):
     elif img.shape[2] == 4:
         img = img[:, :, :3]
 
-    return np.asarray(img)
+    img = np.swapaxes(img, 0, 2)
+    img = np.swapaxes(img, 1, 2)
+
+    return np.asarray(img) * 255.0
 
 def _get_img_feature_by_id(img_dir, img_id):
     file_name = format(img_id, '012d') + ".bin"
