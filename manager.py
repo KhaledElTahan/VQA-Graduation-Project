@@ -5,6 +5,7 @@ def main(args):
     batch_size = 32  # Default
     if len(args) == 2:
         batch_size = int(args[1])
+        
     if args[0] == "train":
         api.train(batch_size, True, True, True, 100)
     elif args[0] == "finetune":

@@ -47,7 +47,3 @@ def prepare_data():
 def extract_features(batch_size, data_type='training'):
     loader = DataFetcher(data_type)
     loader.extract_dataset_images_features()
-
-# train(512, True, True, True, 100, 100, 100000)
-# 
-extract_features(32)
