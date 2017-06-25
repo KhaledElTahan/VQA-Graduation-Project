@@ -28,7 +28,7 @@ def question_lstm_model(questions_ph, phase_ph, questions_length_ph, cell_size, 
 def abstract_model(questions_ph, img_features_ph, questions_length_ph, phase_ph, cell_size=512, layers_num=2):
 
     question_features = question_lstm_model(questions_ph, phase_ph, questions_length_ph, cell_size, layers_num)
-    img_features = tf.nn.l2_normalize(dense_batch_relu(img_features_ph, phase_ph, 1024), dim=1)
+    img_features = dense_batch_relu(tf.nn.l2_normalize(img_features_ph, dim=1), phase_ph, 1024)
 
     fused_features_first = tf.multiply(img_features, question_features)
     fused_features_second = dense_batch_relu(fused_features_first, phase_ph, 1000)
