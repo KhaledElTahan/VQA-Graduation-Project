@@ -1,7 +1,5 @@
 import skimage.io
 from skimage import transform
-from data_fetching.multithreading import FuncThread
-import math
 import numpy as np
 import glob
 import pickle
@@ -17,7 +15,10 @@ def _get_img_by_id(img_dir, img_id):
     if len(files) == 0:
         raise ValueError("No image found with suffix = " + suffix)
 
-    img = skimage.io.imread(files[0])
+    return _get_img_by_filename(files[0])
+
+def _get_img_by_filename(file_name, model="MXNet"):
+    img = skimage.io.imread(file_name)
     img = transform.resize(img, IMG_SHAPE)
 
     # Modifications to the image if it's a grayscale or contains an alpha channel
@@ -26,10 +27,13 @@ def _get_img_by_id(img_dir, img_id):
     elif img.shape[2] == 4:
         img = img[:, :, :3]
 
-    img = np.swapaxes(img, 0, 2)
-    img = np.swapaxes(img, 1, 2)
+    mul = 1.0
+    if model == "MXNet":
+        img = np.swapaxes(img, 0, 2)
+        img = np.swapaxes(img, 1, 2)
+        mul = 255.0
 
-    return np.asarray(img) * 255.0
+    return np.asarray(img) * mul
 
 def _get_img_feature_by_id(img_dir, img_id):
     file_name = format(img_id, '012d') + ".bin"
@@ -38,7 +42,7 @@ def _get_img_feature_by_id(img_dir, img_id):
     if len(files) == 0:
         raise ValueError("No image feature found with name = " + file_name, "in directory:", img_dir)
 
-    with open (files[0], 'rb') as fp:
+    with open(files[0], 'rb') as fp:
         features = pickle.load(fp)
 
     return features
@@ -77,7 +81,7 @@ def get_imgs_batch(image_ids, img_dir):
 
     #     img_threads.append(FuncThread(_get_imgs_batch, img_dir, ids_slice))
 
-    #batch = {}
+    # batch = {}
 
     # for i in range(0, num_threads):
     #     batch = {**batch, **img_threads[i].get_ret_val()}
@@ -88,3 +92,4 @@ def get_imgs_batch(image_ids, img_dir):
 def get_imgs_features_batch(image_ids, img_dir):
 
     return _get_imgs_feature_batch(img_dir, image_ids)
+    

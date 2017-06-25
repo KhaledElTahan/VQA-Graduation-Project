@@ -101,7 +101,7 @@ class DataFetcher:
         image_ids, batch = list(images_dict.keys()), list(images_dict.values())
         features = img_features.extract(batch)
 
-        for i in range(len(features)):                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
+        for i in range(len(features)):
             images_dict[image_ids[i]] = features[i]
 
         return images_dict
@@ -151,10 +151,9 @@ class DataFetcher:
 
         return images_dict
 
-
     def load_annotations(self, questions_all, path=None):
 
-        if path == None:
+        if path is None:
             path = self.get_annotations_path()
 
         # Extract question ids
@@ -180,19 +179,19 @@ class DataFetcher:
         questions_all = get_questions_batch(self.get_dataset_iterator(), batch_size, self.get_questions_processed_path())
 
         # Extract features from questions
-        #question_features_thread = FuncThread(self.questions_to_features, questions_all)
+        # question_features_thread = FuncThread(self.questions_to_features, questions_all)
         
         # Load and extract features from images
-        #images_dict_thread = FuncThread(self.load_images, questions_all)
+        # images_dict_thread = FuncThread(self.load_images, questions_all)
 
         # Load annotations
-        #annotations_dict_thread = FuncThread(self.load_annotations, questions_all)
+        # annotations_dict_thread = FuncThread(self.load_annotations, questions_all)
 
         # Link questions with images and annotations using ids
-        #annotations, images = self.merge_by_id(questions_all, annotations_dict_thread.get_ret_val(), images_dict_thread.get_ret_val())
+        # annotations, images = self.merge_by_id(questions_all, annotations_dict_thread.get_ret_val(), images_dict_thread.get_ret_val())
 
         annotations, images = self.merge_by_id(questions_all, self.load_annotations(questions_all), 
-            self.load_images_features(questions_all))
+                                               self.load_images_features(questions_all))
 
         questions_vecs, questions_length = self.questions_to_features(questions_all)
 
@@ -219,7 +218,6 @@ class DataFetcher:
             annotations = np.append(annotations, annotations_2, axis=0)
 
         return images, questions_vecs, questions_length, annotations, eof
-
 
     def end_of_data(self):
         return (self.itr % self.sum_data_len) == 0 and self.first_load
