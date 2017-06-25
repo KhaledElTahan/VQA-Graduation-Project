@@ -4,13 +4,13 @@ import sys
 import question_test
 import word2vec_test
 import model_dimensionality_test
-import extract_features_tf
 import extract_features_mxnet
 import extract_features_general
 import annotations_fetcher_test
 import img_fetcher_test
 import question_fetcher_test
 import top5_accuracy_test 
+import dataset_feature_extraction
 
 def _set_tests_modules():
     # tests_basis.add_test_file(extract_features_tf)  # NO MORE REQUIRED
@@ -23,7 +23,7 @@ def _set_tests_modules():
     tests_basis.add_test_file(question_fetcher_test)
     tests_basis.add_test_file(model_dimensionality_test)
     tests_basis.add_test_file(top5_accuracy_test)
-
+    tests_basis.add_test_file(dataset_feature_extraction)
 
 def _reload_modules():
     for module in tests_basis._testes_files_list:

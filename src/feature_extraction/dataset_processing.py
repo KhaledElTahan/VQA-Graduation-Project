@@ -46,11 +46,14 @@ def _extract_one_directory_features(batch_size, images_names_list, features_name
         _save_features(features, features_names_list[i:i + batch_size])
 
         extracted_counter = extracted_counter + batch_size
-        print("Extracted ... {}/{} =~ {:7.3f}%".format(extracted_counter, all_images_len, extracted_counter / all_images_len))
+
+        extra_spaces = len('{}'.format(all_images_len)) - len('{}'.format(extracted_counter))
+        prefix = "Extracted ... " + ' ' * extra_spaces
+        print(prefix + "{}/{} =~ {:7.3f}%".format(extracted_counter, all_images_len, (extracted_counter / all_images_len) * 100.0))
 
 def _save_features(images_features, features_names_list):
 
-    for i in len(images_features):
+    for i in range(len(images_features)):
             with open(features_names_list[i], 'wb') as fp:
                 pickle.dump(images_features[i], fp)
 

@@ -9,13 +9,12 @@ Examples:
     python manager.py evaluate test.jpg How many persons are there?
 
 Allowed operations:
-    train                       [batch_size]
-    finetune                    [batch_size]
-    validate                    [batch_size]
+    train                 [batch_size]
+    finetune              [batch_size]
+    validate              [batch_size]
     preprocess_questions
-    extract_training_features   [batch_size]
-    extract_validation_features [batch_size]
-    evaluate                     Image_Path Question
+    extract_all_features  [batch_size]
+    evaluate               Image_Path Question
         Image_Path: Must not contain spaces
 """
 
@@ -42,14 +41,10 @@ def main(args):
     elif args[0] == "preprocess_questions":
         print("Preprocess Questions ...")
         api.prepare_data()
-    elif args[0] == "extract_training_features":
-        print("Extract Training Images Features ...")
+    elif args[0] == "extract_all_features":
+        print("Extract Images Features ...")
         print("Batch size is ", batch_size)
-        api.extract_features(batch_size, "training")
-    elif args[0] == "extract_validation_features":
-        print("Extract Validation Images Features ...")
-        print("Batch size is ", batch_size)
-        api.extract_features(batch_size, "validation")
+        api.extract_features(batch_size)
     elif args[0] == "evaluate":
         print("Evaluating Example ...")
         print("Image Path: ", args[1])

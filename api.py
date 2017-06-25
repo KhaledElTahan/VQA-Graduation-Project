@@ -12,6 +12,7 @@ from src.feature_extraction.img_features import extract
 from src.data_fetching.annotation_fetcher import get_top_answers
 from src.sentence_preprocess import question_batch_to_vecs
 from src.utility import get_image
+from src.feature_extraction.dataset_processing import extract_all_features
 
 def run_tests(system_args):
     # tester.run_tests(system_args)
@@ -49,6 +50,5 @@ def prepare_data():
     val_loader = DataFetcher('validation', preprocessing=True)
     val_loader.preprocess_questions()
 
-def extract_features(batch_size, data_type='training'):
-    loader = DataFetcher(data_type, batch_size)
-    loader.extract_dataset_images_features()
+def extract_features(batch_size):
+    extract_all_features(batch_size)
