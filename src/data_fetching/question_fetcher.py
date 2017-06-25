@@ -1,5 +1,4 @@
 import json
-import numpy as np
 import pickle
 
 LOADED_FILES = {}
@@ -8,7 +7,6 @@ LOADED_FILES = {}
 # Key = question_id
 # Value = { image_id, question }
 def _load_json_file(file_name):
-    q_dict = {}
     with open(file_name) as data_file:
         data = json.load(data_file)
         questions = data["questions"]
@@ -20,7 +18,7 @@ def _load_json_file(file_name):
 # Load binary file of processed questions
 def _load_bin_file(file_name):
 
-    with open (file_name, 'rb') as fp:
+    with open(file_name, 'rb') as fp:
         return pickle.load(fp)
 
 # Returns the global dictionary for questions based on the file_name

@@ -151,7 +151,6 @@ def train_model(check_point_iteration,
 
     train_data_fetcher = DataFetcher('training', batch_size=batch_size, start_itr=starting_pos)
 
-    #for i in range(1, number_of_iteration + 1):
     i = 1
     while True:
 

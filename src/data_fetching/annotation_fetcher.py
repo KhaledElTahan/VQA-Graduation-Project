@@ -26,8 +26,7 @@ def _load_json_file(file_name):
 
     for elem in annotations:
         a_dict[elem["question_id"]] = [(answer["answer"],
-            answer["answer_confidence"] if "answer_confidence" in answer else "yes")
-             for answer in elem["answers"]]
+                                        answer["answer_confidence"] if "answer_confidence" in answer else "yes") for answer in elem["answers"]]
 
         multiple_choice_answers[elem["question_id"]] = elem["multiple_choice_answer"]
 
@@ -55,7 +54,7 @@ def _get_annotations(file_name):
 # 10 is the number of answers for each question
 def get_annotations_batch(question_ids, file_name):
 
-    #get_annotations()[1] will return a dictionary of question id and multiple choice answer for this question
+    # get_annotations()[1] will return a dictionary of question id and multiple choice answer for this question
     all_annotation = _get_annotations(file_name)[1]
     batch = {}
 
@@ -68,7 +67,7 @@ def get_annotations_batch(question_ids, file_name):
 # Takes the multiple_choice_answer return one hot encoded vector of length TOP_ANSWERS_COUNT
 def expand_answer(multiple_choice_answer):
 
-    #TOP_ANSWERS_MAP is a map of the answer word and its index in TOP_ANSWERS_LIST
+    # TOP_ANSWERS_MAP is a map of the answer word and its index in TOP_ANSWERS_LIST
     global TOP_ANSWERS_MAP, TOP_ANSWERS_LIST
 
     if TOP_ANSWERS_MAP is None:
@@ -76,8 +75,8 @@ def expand_answer(multiple_choice_answer):
 
     expanded_answer = [0] * TOP_ANSWERS_COUNT
 
-    #if the multiple_choice_answer of the question is not in the top answers, then the 
-    #return expanded answer will contains all zeroes
+    # if the multiple_choice_answer of the question is not in the top answers, then the 
+    # return expanded answer will contains all zeroes
     if multiple_choice_answer in TOP_ANSWERS_MAP:
         expanded_answer[TOP_ANSWERS_MAP[multiple_choice_answer]] = 1
         
@@ -85,6 +84,7 @@ def expand_answer(multiple_choice_answer):
 
 
 def get_top_answers():
+    global TOP_ANSWERS_MAP
     if TOP_ANSWERS_MAP is None:
         TOP_ANSWERS_MAP, TOP_ANSWERS_LIST = get_top_answers_map()
 
@@ -97,14 +97,14 @@ def get_top_answers_map():
 
     if os.path.exists(TOP_ANSWERS_PATH):
 
-        with open (TOP_ANSWERS_PATH, 'rb') as fp:
+        with open(TOP_ANSWERS_PATH, 'rb') as fp:
             TOP_ANSWERS_MAP, TOP_ANSWERS_LIST = pickle.load(fp)
 
         return TOP_ANSWERS_MAP, TOP_ANSWERS_LIST
 
     top_answers_dict = {}
 
-    #get_annotations()[1] will return a dictionary of question id and multiple choice answer for this question
+    # get_annotations()[1] will return a dictionary of question id and multiple choice answer for this question
     annotations_abstract_v1 = _get_annotations(get_path('training', 'abstract_scenes_v1', 'annotations'))[1]
     annotations_balanced_binary_abstract = _get_annotations(get_path('training', 'balanced_binary_abstract_scenes', 'annotations'))[1]
     annotations_balanced_real = _get_annotations(get_path('training', 'balanced_real_images', 'annotations'))[1]

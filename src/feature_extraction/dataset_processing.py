@@ -40,7 +40,7 @@ def _extract_one_directory_features(batch_size, images_names_list, features_name
             batch_size = directory_len - i
 
         for j in range(i, i + batch_size):
-            images.append(_get_img_by_filename(images_names_list[i]))
+            images.append(_get_img_by_filename(images_names_list[j]))
 
         features = img_features.extract(images)
         _save_features(features, features_names_list[i:i + batch_size])
@@ -95,7 +95,6 @@ def extract_all_features(batch_size):
         images_path.append(glob.glob(directory + "*"))
         all_images_len = all_images_len + len(images_path[-1])
 
-    # make features_names_list here
     features_paths = [] 
     for i in range(len(features_directory_paths)):
         features_paths.append(_convert_image_path_to_features_path_per_directory(images_path[i], features_directory_paths[i]))

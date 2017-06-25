@@ -11,7 +11,7 @@ from src.data_fetching.data_fetcher import DataFetcher
 from src.feature_extraction.img_features import extract
 from src.data_fetching.annotation_fetcher import get_top_answers
 from src.sentence_preprocess import question_batch_to_vecs
-from utility import get_image
+from src.utility import get_image
 
 def run_tests(system_args):
     # tester.run_tests(system_args)

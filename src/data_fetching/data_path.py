@@ -28,7 +28,7 @@ def get_path(evaluation_type, data_set_type, data_type):
             elif data_type == 'images':
                 ret_path = os.path.join(ret_path, 'train2014/')
             elif data_type == 'images_features':
-            	ret_path = os.path.join(ret_path, 'train2014_features/')
+                ret_path = os.path.join(ret_path, 'train2014_features/')
             elif data_type == 'complementary_pairs_list':
                 pass
 
@@ -42,7 +42,7 @@ def get_path(evaluation_type, data_set_type, data_type):
             elif data_type == 'images':
                 ret_path = os.path.join(ret_path, 'scene_img_abstract_v002_binary_train2017/')
             elif data_type == 'images_features':
-            	ret_path = os.path.join(ret_path, 'scene_img_abstract_v002_train2017_features/')
+                ret_path = os.path.join(ret_path, 'scene_img_abstract_v002_train2017_features/')
 
         elif data_set_type == 'abstract_scenes_v1':  # NEED CHANGE TO TRAINING
             if data_type == 'annotations':
@@ -54,7 +54,7 @@ def get_path(evaluation_type, data_set_type, data_type):
             elif data_type == 'images':
                 ret_path = os.path.join(ret_path, 'scene_img_abstract_v002_train2015/')
             elif data_type == 'images_features':
-            	ret_path = os.path.join(ret_path, 'scene_img_abstract_v002_train2015_features/')
+                ret_path = os.path.join(ret_path, 'scene_img_abstract_v002_train2015_features/')
 
     elif evaluation_type == 'validation':
 
@@ -94,11 +94,11 @@ def get_path(evaluation_type, data_set_type, data_type):
             elif data_type == 'questions':  
                 ret_path = os.path.join(ret_path, 'OpenEnded_abstract_v002_val2015_questions.json')
             elif data_type == 'questions_processed':
-            	ret_path = os.path.join(ret_path, 'OpenEnded_abstract_v002_val2015_questions_processed.bin')
+                ret_path = os.path.join(ret_path, 'OpenEnded_abstract_v002_val2015_questions_processed.bin')
             elif data_type == 'images':    
                 ret_path = os.path.join(ret_path, 'scene_img_abstract_v002_val2015/')
             elif data_type == 'images_features':
-            	ret_path = os.path.join(ret_path, 'scene_img_abstract_v002_val2015_features/')
+                ret_path = os.path.join(ret_path, 'scene_img_abstract_v002_val2015_features/')
 
     elif evaluation_type == 'testing':
 
@@ -128,3 +128,4 @@ def get_word2vec_model_path():
 
 def get_glove_path():
     return os.path.join(data_path, "glove.840B.300d.txt")
+    
