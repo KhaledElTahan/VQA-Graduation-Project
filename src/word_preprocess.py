@@ -1,4 +1,4 @@
-import gensim
+from gensim.models.keyedvectors import KeyedVectors
 import pickle
 from data_fetching.data_path import get_word2vec_model_path, get_glove_path
 import os
@@ -12,7 +12,7 @@ def _load_model():
         with open(get_word2vec_model_path(), 'rb') as fp:
             _WORD2VEC_MODEL = pickle.load(fp)
     else:
-        _WORD2VEC_MODEL = gensim.models.Word2Vec.load_word2vec_format(get_glove_path(), binary=False)
+        _WORD2VEC_MODEL = KeyedVectors.load_word2vec_format(get_glove_path(), binary=False)
 
         with open(get_word2vec_model_path(), 'wb') as fp:
             pickle.dump(_WORD2VEC_MODEL, fp)
@@ -29,4 +29,4 @@ def word2vec(word):
     if word in _WORD2VEC_MODEL:
         return _WORD2VEC_MODEL[word]
     else:
-        return _WORD2VEC_MODEL['random']
+        return None

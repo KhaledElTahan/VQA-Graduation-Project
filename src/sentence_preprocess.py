@@ -56,18 +56,14 @@ def preprocess(sentence):
 
 def sentence2vecs(sentence):
     sentence_words = preprocess(sentence)
+    sentence_words = [word2vec(w) for w in sentence_words if word2vec(w) is not None]
     words_count = len(sentence_words)
-    # if words_count > MAX_QUESTION_LENGTH:
-    #     sentence_words = sentence_words[:30]
-
-    # while len(sentence_words) < MAX_QUESTION_LENGTH:
-    #     #question padding
-
+     
     while len(sentence_words) < MAX_QUESTION_LENGTH:
         # question padding
-        sentence_words.append("#")
-
-    return [word2vec(w) for w in sentence_words], words_count
+        sentence_words.append([0] * 300)
+     
+    return sentence_words, words_count
 
 def question_batch_to_vecs(questions):
     # returns array of #question * #words in each question * 300
