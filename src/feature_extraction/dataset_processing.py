@@ -71,7 +71,15 @@ def _get_image_name(image_path):
             idx = i 
             break 
 
-    return temp[:idx]
+    temp = temp[:idx]
+
+    idx = 0
+    for i in range(len(temp)):
+        if temp[i].isdigit():
+            idx = i 
+            break
+
+    return temp[idx:]
 
 def _convert_image_path_to_features_path(image_path, features_directory):
     image_name = _get_image_name(image_path)

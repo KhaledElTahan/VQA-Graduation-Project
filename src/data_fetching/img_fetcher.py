@@ -36,14 +36,14 @@ def _get_img_by_filename(file_name, model="MXNet"):
     return np.asarray(img) * mul
 
 def _get_img_feature_by_id(img_dir, img_id):
-    file_name = "*" + format(img_id, '012d') + ".bin"
-    files = glob.glob(img_dir + file_name)
+    file_name = format(img_id, '012d') + ".bin"
+    file_path = img_dir + file_name
 
-    if len(files) == 0:
+    try:
+        with open(file_path, 'rb') as fp:
+            features = pickle.load(fp)
+    except:     
         raise ValueError("No image feature found with name = " + file_name, "in directory:", img_dir)
-
-    with open(files[0], 'rb') as fp:
-        features = pickle.load(fp)
 
     return features
 

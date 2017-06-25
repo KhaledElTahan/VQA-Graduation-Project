@@ -13,28 +13,28 @@ def main(starting_counter):
     test_args, test_exps, test_fns = [], [], []
 
     test_fns.append(test_fn_1)
-    test_args.append('hello.jpg')
-    test_exps.append('hello')
+    test_args.append('hello1515.jpg')
+    test_exps.append('1515')
 
     test_fns.append(test_fn_1)
-    test_args.append('\hello.jpg')
-    test_exps.append('hello')
+    test_args.append('\hello1515.jpg')
+    test_exps.append('1515')
 
     test_fns.append(test_fn_1)
-    test_args.append('\kk\hello.jpg')
-    test_exps.append('hello')
+    test_args.append('\kk\hello1515.jpg')
+    test_exps.append('1515')
 
     test_fns.append(test_fn_2)
-    test_args.append(('hello.jpg', 'features_directotry'))
-    test_exps.append('features_directotry\hello.bin')
+    test_args.append(('1515.jpg', 'features_directotry'))
+    test_exps.append('features_directotry\\1515.bin')
 
     test_fns.append(test_fn_2)
-    test_args.append(('\hello.jpg', 'features_directotry'))
-    test_exps.append('features_directotry\hello.bin')
+    test_args.append(('\hello1515.jpg', 'features_directotry'))
+    test_exps.append('features_directotry\\1515.bin')
 
     test_fns.append(test_fn_2)
-    test_args.append(('\kk\hello.jpg', 'features_directotry'))
-    test_exps.append('features_directotry\hello.bin')
+    test_args.append(('\kk\hello1515.jpg', 'features_directotry'))
+    test_exps.append('features_directotry\\1515.bin')
 
     tests_basis.create_tests(test_fns, test_args, test_exps)
     return tests_basis.main_tester("Testing some functionality of Dataset feature extraction", starting_counter)
