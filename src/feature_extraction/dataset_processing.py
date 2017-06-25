@@ -55,8 +55,8 @@ def _save_features(images_features, features_names_list):
                 pickle.dump(images_features[i], fp)
 
 def _get_image_name(image_path):
-    idx = 0
-    for i in range(len(image_path) - 1, 0, -1):
+    idx = -1
+    for i in range(len(image_path) - 1, -1, -1):
         if image_path[i] == '/' or image_path[i] == '\\':
             idx = i 
             break 

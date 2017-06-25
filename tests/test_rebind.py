@@ -71,7 +71,7 @@ def main(starting_counter):
     test_exps.append((1, 2048))
 
     tests_basis.create_tests(test_fns, test_args, test_exps)
-    return tests_basis.main_tester("Testing rebinding resnet152-11k-mxnet", starting_counter)
+    return tests_basis.main_tester("Testing rebinding resnet200-1k-mxnet", starting_counter)
 
 
 if __name__ == "__main__":
