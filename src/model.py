@@ -7,10 +7,17 @@ import os
 
 _MAIN_MODEL_GRAPH = None
 
-def dense_batch_relu(input_ph, phase, output_size, name=None):
-    h1 = tf.contrib.layers.fully_connected(input_ph, output_size)
-    h2 = tf.contrib.layers.batch_norm(h1, is_training=phase)
-    return tf.nn.relu(h2, name)
+def dense_batch(input_ph, phase, output_size, has_dropout=False, has_relu=False, has_bn=False, name=None):
+    my_layer = tf.contrib.layers.fully_connected(input_ph, output_size, activation_fn=None)
+
+    if has_dropout:
+        layers.dropout(my_layer, is_training=phase)
+    if has_bn:
+        my_layer = tf.contrib.layers.batch_norm(my_layer, is_training=phase)
+    if has_relu:
+        my_layer = tf.nn.relu(my_layer, name)
+    
+    return my_layer
 
 # question_ph is batchSize*#wordsInEachQuestion*300
 def question_lstm_model(questions_ph, phase_ph, questions_length_ph, cell_size, layers_num):
@@ -22,18 +29,23 @@ def question_lstm_model(questions_ph, phase_ph, questions_length_ph, cell_size, 
     
     combined_states = tf.stack(final_state, 1)
     combined_states = tf.reshape(combined_states, [-1, cell_size * layers_num * 2])
+    combined_states = layers.dropout(combined_states, is_training=phase_ph)
 
-    return dense_batch_relu(combined_states, phase_ph, 1024)  # The questions features
+    return tf.contrib.layers.fully_connected(combined_states, 1024, activation_fn=None)  # The questions features
 
 def abstract_model(questions_ph, img_features_ph, questions_length_ph, phase_ph, cell_size=512, layers_num=2):
 
     question_features = question_lstm_model(questions_ph, phase_ph, questions_length_ph, cell_size, layers_num)
-    img_features = dense_batch_relu(tf.nn.l2_normalize(img_features_ph, dim=1), phase_ph, 1024)
+    question_features = tf.nn.tanh(question_features)
+
+    img_features = dense_batch(img_features_ph, phase_ph, 1024)
+    img_features = tf.nn.tanh(img_features)
 
     fused_features_first = tf.multiply(img_features, question_features)
-    fused_features_second = dense_batch_relu(fused_features_first, phase_ph, 1000)
+    fused_features_second = dense_batch(fused_features_first, phase_ph, 1024, has_dropout=True)
+    fused_features_third = dense_batch(fused_features_second, phase_ph, 1024, has_dropout=True)
     
-    return layers.fully_connected(fused_features_second, 1000)  # logits
+    return dense_batch(fused_features_third, None, 1000)  # logits
 
 def _accuracy(predictions, labels, k, name):  
     
@@ -134,7 +146,7 @@ def train_model(check_point_iteration,
             # Ensures that we execute the update_ops before performing the train_step
             train_step = optimizer.minimize(loss, name='train_step')
 
-        init = tf.initialize_all_variables()
+        init = tf.global_variables_initializer()
         sess.run(init)
 
         starting_pos = 0
