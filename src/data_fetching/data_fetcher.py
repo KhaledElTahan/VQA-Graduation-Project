@@ -18,7 +18,7 @@ class DataFetcher:
         self.batch_size = batch_size
         self.itr = start_itr
 
-        self.available_datasets = ['balanced_real_images', 'balanced_binary_abstract_scenes', 'abstract_scenes_v1']
+        self.available_datasets = ['balanced_real_images']
 
         if not preprocessing:
 

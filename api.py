@@ -19,7 +19,7 @@ def run_tests(system_args):
     pass
 
 def train(batch_size, from_scratch_flag, validate_flag, trace_flag, checkpoint_itr):
-    learning_rate = 1e-4
+    learning_rate = 1e-3
     
     train_model(checkpoint_itr, learning_rate, batch_size, from_scratch_flag, validate_flag, trace_flag)
 
