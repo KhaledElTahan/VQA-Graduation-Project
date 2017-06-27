@@ -109,14 +109,15 @@ class DataFetcher:
     # Link questions with images and annotations using ids
     def merge_by_id(self, questions_all, annotations_dict, images_dict):
 
-        annotations, images = [], []
+        annotations, images, weights = [], [], []
 
         for q in questions_all:
 
-            annotations.append(annotations_dict[q["question_id"]])
+            annotations.append(annotations_dict[q["question_id"]][0])
+            weights.append(annotations_dict[q["question_id"]][1])
             images.append(images_dict[q["image_id"]])
 
-        return np.array(annotations), np.array(images)
+        return np.array(annotations), np.array(weights), np.array(images)
 
     def questions_to_features(self, questions_all):
 
@@ -190,7 +191,7 @@ class DataFetcher:
         # Link questions with images and annotations using ids
         # annotations, images = self.merge_by_id(questions_all, annotations_dict_thread.get_ret_val(), images_dict_thread.get_ret_val())
 
-        annotations, images = self.merge_by_id(questions_all, self.load_annotations(questions_all), 
+        annotations, weights, images = self.merge_by_id(questions_all, self.load_annotations(questions_all), 
                                                self.load_images_features(questions_all))
 
         questions_vecs, questions_length = self.questions_to_features(questions_all)
@@ -198,11 +199,11 @@ class DataFetcher:
         # Updates state of the loader to prepare for the next batch
         self.update_state(len(questions_all))
 
-        return images, questions_vecs, questions_length, annotations
+        return images, questions_vecs, questions_length, annotations, weights
 
     def get_next_batch(self):
 
-        images, questions_vecs, questions_length, annotations = self._get_next_batch(self.batch_size)
+        images, questions_vecs, questions_length, annotations, weights = self._get_next_batch(self.batch_size)
 
         actual_batch_size = len(images)
 
@@ -210,14 +211,15 @@ class DataFetcher:
 
         if actual_batch_size < self.batch_size:
 
-            images_2, questions_vecs_2, questions_length_2, annotations_2 = self._get_next_batch(self.batch_size - actual_batch_size)
+            images_2, questions_vecs_2, questions_length_2, annotations_2, weights_2 = self._get_next_batch(self.batch_size - actual_batch_size)
 
             images = np.append(images, images_2, axis=0)
             questions_vecs = np.append(questions_vecs, questions_vecs_2, axis=0)
             questions_length = np.append(questions_length, questions_length_2, axis=0)
             annotations = np.append(annotations, annotations_2, axis=0)
+            weights = np.append(weights, weights_2, axis=0)
 
-        return images, questions_vecs, questions_length, annotations, eof
+        return images, questions_vecs, questions_length, annotations, weights, eof
 
     def end_of_data(self):
         return (self.itr % self.sum_data_len) == 0 and self.first_load
@@ -264,7 +266,7 @@ class DataFetcher:
 
             for q in questions_all:
 
-                if sum(annotations_all[q["question_id"]]) != 0:
+                if sum(annotations_all[q["question_id"]][0]) != 0:
 
                     valid_questions.append(q)
 

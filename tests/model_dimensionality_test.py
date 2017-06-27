@@ -9,7 +9,7 @@ def test_fn(tensor_type, unique_num):
         init = tf.global_variables_initializer()
         sess.run(init)
 
-        questions_place_holder, images_place_holder, labels_place_holder, questions_length_place_holder, logits, loss, accuarcy_1, accuracy_5, bn_phase = _train_from_scratch(sess)
+        questions_place_holder, images_place_holder, labels_place_holder, class_weight_place_holder, questions_length_place_holder, logits, loss, accuarcy_1, accuracy_5, bn_phase = _train_from_scratch(sess)
         sess.close()
 
         if tensor_type == "questions_place_holder":
@@ -24,6 +24,8 @@ def test_fn(tensor_type, unique_num):
             return loss.get_shape().as_list()
         elif tensor_type == "bn_phase":
             return bn_phase.get_shape().as_list()
+        elif tensor_type == "class_weight":
+            return class_weight_place_holder.get_shape().as_list()
         return accuarcy_1.get_shape().as_list()
 
 
@@ -44,6 +46,8 @@ def main(starting_counter):
     test_exps.append([])
     test_args.append(("bn_phase", 7))
     test_exps.append([])
+    test_args.append(("class_weight", 8))
+    test_exps.append([None])
 
     tests_basis.create_tests([test_fn] * len(test_args), test_args, test_exps)
     return tests_basis.main_tester("Testing The model dimentionality based on Batch_Size", starting_counter)

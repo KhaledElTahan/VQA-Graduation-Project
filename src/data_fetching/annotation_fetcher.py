@@ -1,7 +1,6 @@
 import json
-import numpy as np
 import operator
-from data_fetching.data_path import get_path,get_top_answers_path
+from data_fetching.data_path import get_path, get_top_answers_path
 import pickle
 import os.path
 
@@ -9,6 +8,7 @@ TOP_ANSWERS_PATH = get_top_answers_path()
 TOP_ANSWERS_MAP = None      # Key is answer string, Value is its index in the TOP_ANSWERS array
 TOP_ANSWERS_LIST = None
 TOP_ANSWERS_COUNT = 1000
+CLASS_WEIGHT = None 
 
 LOADED_JSON_FILES = {}
 
@@ -71,36 +71,38 @@ def expand_answer(multiple_choice_answer):
     global TOP_ANSWERS_MAP, TOP_ANSWERS_LIST
 
     if TOP_ANSWERS_MAP is None:
-        TOP_ANSWERS_MAP, TOP_ANSWERS_LIST = get_top_answers_map()
+        TOP_ANSWERS_MAP, TOP_ANSWERS_LIST, _ = get_top_answers_map()
 
     expanded_answer = [0] * TOP_ANSWERS_COUNT
 
     # if the multiple_choice_answer of the question is not in the top answers, then the 
-    # return expanded answer will contains all zeroes
+    # return expanded answer will contains all zeroe
+    weight = 0
     if multiple_choice_answer in TOP_ANSWERS_MAP:
         expanded_answer[TOP_ANSWERS_MAP[multiple_choice_answer]] = 1
-        
-    return expanded_answer
+        weight = CLASS_WEIGHT[TOP_ANSWERS_MAP[multiple_choice_answer]]
+
+    return (expanded_answer, weight)
 
 
 def get_top_answers():
     global TOP_ANSWERS_MAP
     if TOP_ANSWERS_MAP is None:
-        TOP_ANSWERS_MAP, TOP_ANSWERS_LIST = get_top_answers_map()
+        TOP_ANSWERS_MAP, TOP_ANSWERS_LIST, _ = get_top_answers_map()
 
     return TOP_ANSWERS_LIST
 
 # Returns the top answers 
 def get_top_answers_map():
 
-    global TOP_ANSWERS_MAP, TOP_ANSWERS_LIST
+    global TOP_ANSWERS_MAP, TOP_ANSWERS_LIST, CLASS_WEIGHT
 
     if os.path.exists(TOP_ANSWERS_PATH):
 
         with open(TOP_ANSWERS_PATH, 'rb') as fp:
-            TOP_ANSWERS_MAP, TOP_ANSWERS_LIST = pickle.load(fp)
+            TOP_ANSWERS_MAP, TOP_ANSWERS_LIST, CLASS_WEIGHT = pickle.load(fp)
 
-        return TOP_ANSWERS_MAP, TOP_ANSWERS_LIST
+        return TOP_ANSWERS_MAP, TOP_ANSWERS_LIST, CLASS_WEIGHT
 
     top_answers_dict = {}
 
@@ -134,8 +136,19 @@ def get_top_answers_map():
         ans = TOP_ANSWERS_LIST[i]
         TOP_ANSWERS_MAP[ans] = i
 
+    CLASS_WEIGHT = _calculate_class_weights(TOP_ANSWERS_LIST, top_answers_dict)
+
     # Write map and list to file
     with open(TOP_ANSWERS_PATH, 'wb') as fp:
-        pickle.dump([TOP_ANSWERS_MAP, TOP_ANSWERS_LIST], fp)
+        pickle.dump([TOP_ANSWERS_MAP, TOP_ANSWERS_LIST, CLASS_WEIGHT], fp)
 
-    return TOP_ANSWERS_MAP, TOP_ANSWERS_LIST
+    return TOP_ANSWERS_MAP, TOP_ANSWERS_LIST, CLASS_WEIGHT
+
+def _calculate_class_weights(top_answers_list, top_answers_dict):
+    class_weights = [0] * TOP_ANSWERS_COUNT
+
+    for i in range(TOP_ANSWERS_COUNT):
+        class_weights[i] = top_answers_dict[top_answers_list[0]] / top_answers_dict[top_answers_list[i]]
+
+    return class_weights
+

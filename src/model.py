@@ -1,5 +1,6 @@
 import tensorflow as tf
 from tensorflow.contrib import layers
+from tensorflow import losses
 from tensorflow.contrib import rnn
 from data_fetching.data_fetcher import DataFetcher
 import numpy as np
@@ -69,13 +70,14 @@ def save_state(saver, sess, starting_pos, idx, batch_size, loss_sum, accuracy_1_
 
 def validation_independent(batch_size):
     sess = tf.Session()
-    questions_place_holder, images_place_holder, labels_place_holder, questions_length_place_holder, logits, loss, top1_accuarcy, top5_accuarcy, phase_ph, starting_pos, train_step = _get_saved_graph_tensors(sess)
+    questions_place_holder, images_place_holder, labels_place_holder, class_weight_place_holder, questions_length_place_holder, logits, loss, top1_accuarcy, top5_accuarcy, phase_ph, starting_pos, train_step = _get_saved_graph_tensors(sess)
 
     validation_loss, validation_acc_1, validation_acc_5 = validation_acc_loss(sess,
                                                                               batch_size,
                                                                               images_place_holder,
                                                                               questions_place_holder,
                                                                               labels_place_holder,
+                                                                              class_weight_place_holder,
                                                                               questions_length_place_holder,
                                                                               phase_ph, top1_accuarcy, top5_accuarcy, loss)
     
@@ -87,6 +89,7 @@ def validation_acc_loss(sess,
                         images_place_holder,
                         questions_place_holder,
                         labels_place_holder,
+                        class_weight_place_holder,
                         questions_length_place_holder,
                         phase_ph,
                         top1_accuarcy,
@@ -105,9 +108,15 @@ def validation_acc_loss(sess,
 
     while True:
 
-        images_batch, questions_batch, questions_length, labels_batch, end_of_epoch = val_data_fetcher.get_next_batch() 
+        images_batch, questions_batch, questions_length, labels_batch, weights_batch, end_of_epoch = val_data_fetcher.get_next_batch() 
         
-        feed_dict = {questions_place_holder: questions_batch, images_place_holder: images_batch, labels_place_holder: labels_batch, questions_length_place_holder:questions_length, phase_ph: 0}
+        feed_dict = {questions_place_holder: questions_batch,
+                     images_place_holder: images_batch,
+                     labels_place_holder: labels_batch,
+                     class_weight_place_holder: weights_batch,
+                     questions_length_place_holder: questions_length,
+                     phase_ph: 0}
+
         l, a1, a5 = sess.run([loss, top1_accuarcy, top5_accuarcy], feed_dict=feed_dict)
         
         itr += 1
@@ -138,7 +147,7 @@ def train_model(check_point_iteration,
     sess = tf.Session()
     
     if from_scratch:
-        questions_place_holder, images_place_holder, labels_place_holder, questions_length_place_holder, logits, loss, top1_accuarcy, top5_accuarcy, phase_ph = _train_from_scratch(sess) 
+        questions_place_holder, images_place_holder, labels_place_holder, class_weight_place_holder, questions_length_place_holder, logits, loss, top1_accuarcy, top5_accuarcy, phase_ph = _train_from_scratch(sess) 
         optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
 
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
@@ -155,7 +164,7 @@ def train_model(check_point_iteration,
 
         training_log_file, training_statistics_file, validation_statistics_file = _create_printing_files(discard_if_exists=True)
     else:
-        questions_place_holder, images_place_holder, labels_place_holder, questions_length_place_holder, logits, loss, top1_accuarcy, top5_accuarcy, phase_ph, starting_pos, train_step = _get_saved_graph_tensors(sess)
+        questions_place_holder, images_place_holder, labels_place_holder, class_weight_place_holder, questions_length_place_holder, logits, loss, top1_accuarcy, top5_accuarcy, phase_ph, starting_pos, train_step = _get_saved_graph_tensors(sess)
         loss_sum, accuracy_1_sum, accuracy_5_sum, cnt_iteration, cnt_examples, epoch_number = np.loadtxt('models/VQA_model/statistics.out')
         training_log_file, training_statistics_file, validation_statistics_file = _create_printing_files(discard_if_exists=False)
 
@@ -166,7 +175,7 @@ def train_model(check_point_iteration,
     i = 1
     while True:
 
-        images_batch, questions_batch, questions_length, labels_batch, end_of_epoch = train_data_fetcher.get_next_batch()
+        images_batch, questions_batch, questions_length, labels_batch, weights_batch, end_of_epoch = train_data_fetcher.get_next_batch()
 
         if validate and end_of_epoch:
             validation_loss, validation_acc_1, validation_acc_5 = validation_acc_loss(sess,
@@ -174,6 +183,7 @@ def train_model(check_point_iteration,
                                                                                       images_place_holder,
                                                                                       questions_place_holder,
                                                                                       labels_place_holder,
+                                                                                      class_weight_place_holder,
                                                                                       questions_length_place_holder,
                                                                                       phase_ph, top1_accuarcy, top5_accuarcy, loss)
             _print_statistics(validation_statistics_file, "Validation", epoch_number, validation_acc_1, validation_acc_5, validation_loss)
@@ -190,6 +200,7 @@ def train_model(check_point_iteration,
         feed_dict = {questions_place_holder: questions_batch,
                      images_place_holder: images_batch, 
                      labels_place_holder: labels_batch, 
+                     class_weight_place_holder: weights_batch,
                      questions_length_place_holder: questions_length, 
                      phase_ph: 1}
         
@@ -229,17 +240,13 @@ def _create_printing_files(discard_if_exists=False):
     if discard_if_exists:
         mode = 'w'
 
-    directory = os.path.join(os.getcwd(), "models/VQA_model/")
+    directory = os.path.join(os.getcwd(), "log/")
     if not os.path.exists(directory):
         os.makedirs(directory)
 
-    directory = os.path.join(os.getcwd(), "models/VQA_model/log/")
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-
-    training_log_file = open('models/VQA_model/log/training_log.txt', mode)
-    training_statistics_file = open('models/VQA_model/log/training_statistics.txt', mode)
-    validation_statistics_file = open('models/VQA_model/log/validation_statistics.txt', mode)
+    training_log_file = open('log/training_log.txt', mode)
+    training_statistics_file = open('log/training_statistics.txt', mode)
+    validation_statistics_file = open('log/validation_statistics.txt', mode)
 
     return training_log_file, training_statistics_file, validation_statistics_file
 
@@ -279,16 +286,17 @@ def _train_from_scratch(sess):
     questions_place_holder = tf.placeholder(tf.float32, [None, None, 300], name='questions_place_holder') 
     images_place_holder = tf.placeholder(tf.float32, [None, 2048], name='images_place_holder')
     labels_place_holder = tf.placeholder(tf.float32, [None, 1000], name='labels_place_holder')
+    class_weight_place_holder = tf.placeholder(tf.float32, [None], name='class_weight_place_holder')
     questions_length_place_holder = tf.placeholder(tf.int32, [None], name='questions_length_place_holder')
-    
+
     bn_phase = tf.placeholder(tf.bool, [], name='bn_phase')
 
     logits = tf.identity(abstract_model(questions_place_holder, images_place_holder, questions_length_place_holder, bn_phase), name="logits")
-    loss = tf.reduce_sum(tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=labels_place_holder), name='loss')
+    loss = tf.identity(losses.softmax_cross_entropy(labels_place_holder, logits, class_weight_place_holder), name='loss')
     top1_accuarcy = _accuracy(tf.nn.softmax(logits), labels_place_holder, k=1, name='top1_accuracy')
     top5_accuarcy = _accuracy(tf.nn.softmax(logits), labels_place_holder, k=5, name='top5_accuracy')
 
-    return questions_place_holder, images_place_holder, labels_place_holder, questions_length_place_holder, logits, loss, top1_accuarcy, top5_accuarcy, bn_phase
+    return questions_place_holder, images_place_holder, labels_place_holder, class_weight_place_holder, questions_length_place_holder, logits, loss, top1_accuarcy, top5_accuarcy, bn_phase
 
 def _get_saved_graph_tensors(sess):
     
@@ -299,6 +307,7 @@ def _get_saved_graph_tensors(sess):
     questions_place_holder = _MAIN_MODEL_GRAPH.get_tensor_by_name("questions_place_holder:0") 
     images_place_holder = _MAIN_MODEL_GRAPH.get_tensor_by_name("images_place_holder:0")
     labels_place_holder = _MAIN_MODEL_GRAPH.get_tensor_by_name("labels_place_holder:0")
+    class_weight_place_holder = _MAIN_MODEL_GRAPH.get_tensor_by_name("class_weight_place_holder:0")
     questions_length_place_holder = _MAIN_MODEL_GRAPH.get_tensor_by_name("questions_length_place_holder:0")
     
     bn_phase = _MAIN_MODEL_GRAPH.get_tensor_by_name("bn_phase:0")
@@ -310,12 +319,12 @@ def _get_saved_graph_tensors(sess):
 
     train_step = _MAIN_MODEL_GRAPH.get_operation_by_name("train_step")
 
-    return questions_place_holder, images_place_holder, labels_place_holder, questions_length_place_holder, logits, loss, top1_accuarcy, top5_accuarcy, bn_phase, last_index, train_step
+    return questions_place_holder, images_place_holder, labels_place_holder, class_weight_place_holder, questions_length_place_holder, logits, loss, top1_accuarcy, top5_accuarcy, bn_phase, last_index, train_step
 
 def evaluate(image_features, question_features, questions_length):
 
     sess = tf.Session()
-    questions_place_holder, images_place_holder, labels_place_holder, questions_length_place_holder, logits, _, _, phase_ph = _get_saved_graph_tensors(sess)
+    questions_place_holder, images_place_holder, labels_place_holder, class_weight_place_holder, questions_length_place_holder, logits, _, _, phase_ph = _get_saved_graph_tensors(sess)
     feed_dict = {questions_place_holder: question_features, images_place_holder: image_features, questions_length_place_holder: questions_length, phase_ph: 0}
     
     results = tf.nn.softmax(logits)
