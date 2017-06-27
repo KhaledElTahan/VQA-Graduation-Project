@@ -8,7 +8,7 @@ import os
 
 _MAIN_MODEL_GRAPH = None
 
-def dense_batch(input_ph, phase, output_size, has_dropout=False, has_relu=False, has_bn=False, name=None):
+def dense_batch(input_ph, phase, output_size, has_dropout=False, has_relu=False, has_bn=False, has_tanh=False, name=None):
     my_layer = tf.contrib.layers.fully_connected(input_ph, output_size, activation_fn=None)
 
     if has_dropout:
@@ -17,6 +17,8 @@ def dense_batch(input_ph, phase, output_size, has_dropout=False, has_relu=False,
         my_layer = tf.contrib.layers.batch_norm(my_layer, is_training=phase)
     if has_relu:
         my_layer = tf.nn.relu(my_layer, name)
+    if has_tanh:
+        my_layer = tf.nn.tanh(my_layer, name)
     
     return my_layer
 
@@ -30,21 +32,18 @@ def question_lstm_model(questions_ph, phase_ph, questions_length_ph, cell_size, 
     
     combined_states = tf.stack(final_state, 1)
     combined_states = tf.reshape(combined_states, [-1, cell_size * layers_num * 2])
-    combined_states = layers.dropout(combined_states, is_training=phase_ph)
 
-    return tf.contrib.layers.fully_connected(combined_states, 1024, activation_fn=None)  # The questions features
+    return dense_batch(combined_states, phase_ph, 1024, has_tanh=True)  # The questions features
 
 def abstract_model(questions_ph, img_features_ph, questions_length_ph, phase_ph, cell_size=512, layers_num=2):
 
     question_features = question_lstm_model(questions_ph, phase_ph, questions_length_ph, cell_size, layers_num)
-    question_features = tf.nn.tanh(question_features)
 
-    img_features = dense_batch(img_features_ph, phase_ph, 1024)
-    img_features = tf.nn.tanh(img_features)
+    img_features = dense_batch(img_features_ph, phase_ph, 1024, has_tanh=True)
 
     fused_features_first = tf.multiply(img_features, question_features)
-    fused_features_second = dense_batch(fused_features_first, phase_ph, 1024, has_dropout=True)
-    fused_features_third = dense_batch(fused_features_second, phase_ph, 1024, has_dropout=True)
+    fused_features_second = dense_batch(fused_features_first, phase_ph, 1024, has_dropout=True, has_tanh=True)
+    fused_features_third = dense_batch(fused_features_second, phase_ph, 1024, has_dropout=True, has_tanh=True)
     
     return dense_batch(fused_features_third, None, 1000)  # logits
 
