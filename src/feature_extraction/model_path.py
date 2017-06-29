@@ -18,4 +18,7 @@ def get_path(model_name, file_type=""):
     elif model_name == "resnet200-1k-mxnet":
         path = os.path.join(models_path, "resnet200-1k-mxnet")
         return path + "/resnet-200"
+    elif model_name == "VGG19-1k-mxnet":
+        path = os.path.join(models_path, "VGG19-1k-mxnet")
+        return path + "/vgg19"
         

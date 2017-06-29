@@ -37,19 +37,19 @@ def main(starting_counter):
     test_args = [None] * 4
 
     test_fns.append(test_fn_1)
-    test_exps.append((1, 2048))
+    test_exps.append((1, 4096))
 
     test_fns.append(test_fn_2)
-    test_exps.append((1, 2048))
+    test_exps.append((1, 4096))
 
     test_fns.append(test_fn_3)
-    test_exps.append((4, 2048))
+    test_exps.append((4, 4096))
 
     test_fns.append(test_fn_4)
-    test_exps.append((4, 2048))
+    test_exps.append((4, 4096))
 
     tests_basis.create_tests(test_fns, test_args, test_exps)
-    return tests_basis.main_tester("Testing the feature extraction from the resnet200-1k-mxnet", starting_counter)
+    return tests_basis.main_tester("Testing the feature extraction from the VGG19-1k-mxnet", starting_counter)
 
 
 if __name__ == "__main__":
