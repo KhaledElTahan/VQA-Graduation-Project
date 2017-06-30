@@ -279,7 +279,7 @@ def _get_last_main_model_path():
 
 def _train_from_scratch(sess):
     questions_place_holder = tf.placeholder(tf.float32, [None, None, 300], name='questions_place_holder') 
-    images_place_holder = tf.placeholder(tf.float32, [None, 2048], name='images_place_holder')
+    images_place_holder = tf.placeholder(tf.float32, [None, 4096], name='images_place_holder')
     labels_place_holder = tf.placeholder(tf.float32, [None, 1000], name='labels_place_holder')
     class_weight_place_holder = tf.placeholder(tf.float32, [None], name='class_weight_place_holder')
     questions_length_place_holder = tf.placeholder(tf.int32, [None], name='questions_length_place_holder')
