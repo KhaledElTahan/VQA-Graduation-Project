@@ -38,14 +38,10 @@ def question_lstm_model(questions_ph, phase_ph, questions_length_ph, cell_size, 
 def abstract_model(questions_ph, img_features_ph, questions_length_ph, phase_ph, cell_size=512, layers_num=2):
 
     question_features = question_lstm_model(questions_ph, phase_ph, questions_length_ph, cell_size, layers_num)
-
     img_features = dense_batch(img_features_ph, phase_ph, 1024, has_tanh=True, has_bn=True)
-
-    fused_features_first = tf.multiply(img_features, question_features)
-    fused_features_second = dense_batch(fused_features_first, phase_ph, 1024, has_dropout=True, has_tanh=True, has_bn=True)
-    fused_features_third = dense_batch(fused_features_second, phase_ph, 1024, has_dropout=True, has_tanh=True, has_bn=True)
+    fused_features = tf.multiply(img_features, question_features)
     
-    return dense_batch(fused_features_third, None, 1000)  # logits
+    return dense_batch(fused_features, None, 1000)  # logits
 
 def _accuracy(predictions, labels, k, name):  
     
@@ -147,7 +143,7 @@ def train_model(check_point_iteration,
     
     if from_scratch:
         questions_place_holder, images_place_holder, labels_place_holder, class_weight_place_holder, questions_length_place_holder, logits, loss, top1_accuarcy, top5_accuarcy, phase_ph = _train_from_scratch(sess) 
-        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
+        optimizer = tf.train.RMSPropOptimizer(learning_rate=learning_rate, decay=1)
 
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
         with tf.control_dependencies(update_ops):
