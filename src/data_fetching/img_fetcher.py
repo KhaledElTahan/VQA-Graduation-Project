@@ -36,7 +36,7 @@ def _get_img_by_filename(file_name, model="MXNet"):
     return np.asarray(img) * mul
 
 def _get_img_feature_by_id(img_dir, img_id):
-    file_name = format(img_id, '012d') + ".bin"
+    file_name = '2014_' + format(img_id, '012d') + ".bin"
     file_path = img_dir + file_name
 
     try:
