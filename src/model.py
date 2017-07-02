@@ -107,9 +107,9 @@ def trace_statistics(batch_size, k=10):
 
     labels_max_indices = np.argmax(labels_batch, axis=1)
     for i in range(batch_size):
-        my_file.write('Label-index:{} '.format(labels_max_indices[i]))
+        my_file.write('Label-index:' + '{}'.format(labels_max_indices[i]).ljust(5))
         for j in range(k):
-            my_file.write('- ' + '{}'.format(val_top_indices[i][j]).rjust(4) + ':{:1.5f}'.format(val_top_values[i][j])) 
+            my_file.write(' - ' + '{}'.format(val_top_indices[i][j]).rjust(4) + ':{:1.5f}'.format(val_top_values[i][j])) 
 
         my_file.write('\n')
 
