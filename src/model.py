@@ -5,6 +5,7 @@ from tensorflow.contrib import rnn
 from data_fetching.data_fetcher import DataFetcher
 import numpy as np
 import os 
+import datetime
 
 _MAIN_MODEL_GRAPH = None
 
@@ -83,6 +84,43 @@ def validation_independent(batch_size):
     to_print = "Validation::SUMMARY (Avg-Top1-Accuracy: {}%, Avg-Top5-Accuracy: {}%, Avg-Loss: {})".format(validation_acc_1, validation_acc_5, validation_loss)
     print(to_print)
 
+def trace_statistics(batch_size, k=10):
+    sess = tf.Session()
+    questions_place_holder, images_place_holder, labels_place_holder, class_weight_place_holder, questions_length_place_holder, logits, loss, top1_accuarcy, top5_accuarcy, phase_ph, starting_pos, train_step = _get_saved_graph_tensors(sess)
+
+    val_data_fetcher = DataFetcher('validation', batch_size=batch_size)
+    images_batch, questions_batch, questions_length, labels_batch, weights_batch, end_of_epoch = val_data_fetcher.get_next_batch()
+
+    feed_dict = {questions_place_holder: questions_batch,
+                 images_place_holder: images_batch,
+                 labels_place_holder: labels_batch,
+                 class_weight_place_holder: weights_batch,
+                 questions_length_place_holder: questions_length,
+                 phase_ph: 0}
+
+    logits_softmax = tf.nn.softmax(logits)
+    top_values, top_indices = tf.nn.top_k(logits_softmax, k, sorted=True, name=None)
+
+    val_loss, val_top_values, val_top_indices = sess.run([loss, top_values, top_indices], feed_dict=feed_dict)
+
+    time_stamp = 'time_{:%Y-%m-%d-%H-%M-%S}'.format(datetime.datetime.now())
+    file_name = "log/statistics_trace" + "_k{}_".format(k) + time_stamp
+
+    my_file = open(file_name, 'w')
+    my_file.write('K={}, Loss = {}\n'.format(k, val_loss))
+
+    labels_max_indices = np.argmax(labels_batch, axis=1)
+    for i in range(batch_size):
+        my_file.write('Label index:{} '.format(labels_max_indices[i]))
+        for j in range(k):
+            my_file.write('- {}:{:1.5f}'.format(val_top_indices, val_top_values)) 
+
+        my_file.write('\n')
+
+    my_file.close()
+
+
+
 def validation_acc_loss(sess,
                         batch_size,
                         images_place_holder,
@@ -130,7 +168,7 @@ def validation_acc_loss(sess,
     
     temp_acc_1 /= itr
     temp_acc_5 /= itr
-    temp_loss /= (itr * batch_size)
+    temp_loss /= itr
     
     print("VALIDATION:: ENDING...")
 
@@ -190,7 +228,7 @@ def train_model(check_point_iteration,
         if end_of_epoch: 
             accuracy_1_avg = accuracy_1_sum / cnt_iteration
             accuracy_5_avg = accuracy_5_sum / cnt_iteration
-            loss_avg = loss_sum / cnt_examples
+            loss_avg = loss_sum / cnt_iteration
             _print_statistics(training_statistics_file, "Training", epoch_number, accuracy_1_avg, accuracy_5_avg, loss_avg)
             epoch_number = epoch_number + 1
             loss_sum, accuracy_1_sum, accuracy_5_sum, cnt_iteration, cnt_examples = 0.0, 0.0, 0.0, 0.0, 0.0

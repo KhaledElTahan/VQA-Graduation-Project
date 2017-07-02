@@ -7,6 +7,7 @@ sys.path.insert(0, 'src/feature_extraction')
 from src.model import evaluate
 from src.model import train_model
 from src.model import validation_independent
+from src.model import trace_statistics
 from src.data_fetching.data_fetcher import DataFetcher
 from src.feature_extraction.img_features import extract
 from src.data_fetching.annotation_fetcher import get_top_answers
@@ -52,3 +53,6 @@ def prepare_data():
 
 def extract_features(batch_size):
     extract_all_features(batch_size)
+
+def trace(batch_size, k):
+    trace_statistics(batch_size, k)

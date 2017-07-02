@@ -23,8 +23,12 @@ import sys
 
 def main(args):
     batch_size = 32  # Default
-    if len(args) == 2:
+    k = 10           # Default
+
+    if len(args) >= 2:
         batch_size = int(args[1])
+    if len(args) >= 3:
+        k = int(args[2])
         
     if args[0] == "train":
         print("Training from scratch ...")
@@ -50,7 +54,11 @@ def main(args):
         print("Image Path: ", args[1])
         print("Question words: ", args[1:])
         api.evaluate_example_url(args[1], args[1:])
-
+    elif args[0] == "trace":
+        print("Trace Statistics of a Batch of Validation Set ...")
+        print("Batch size is ", batch_size)
+        print("K is ", k)
+        api.trace(batch_size, k)
 
 if __name__ == "__main__":
     main(sys.argv[1:])
